@@ -7,10 +7,20 @@
 <article class="media content-section">
   <div class="media-body">
     <div class="article-metadata">
-      <a class="mr-2" href="#">{{ transaction.type }} - ${{transaction.amount}}</a>
-      <small class="text-muted">{{ transaction.date_posted|date:"F d, Y"}}</small>
+      <a class="mr-2" href="#"
+        >{{ transaction.type }} - ${{transaction.amount}}</a
+      >
+      <small class="text-muted"
+        >{{ transaction.date_posted|date:"F d, Y"}}</small
+      >
     </div>
-    <h2><a class="article-title" href="#">{{ transaction.source }}</a></h2>
+    <h2>
+      <a
+        class="article-title"
+        href="{% url 'transaction-detail' transaction,id %"
+        >{{ transaction.source }}</a
+      >
+    </h2>
     <p class="article-content">{{ transaction.notes }}</p>
   </div>
 </article>
