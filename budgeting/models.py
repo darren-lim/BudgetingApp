@@ -6,7 +6,7 @@ from django.urls import reverse
 
 class Transaction(models.Model):
     t_type = models.CharField(max_length=10)
-    amount = models.DecimalField(max_digits=1000000000, decimal_places=2)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
     source = models.CharField(max_length=30)
     notes = models.TextField()
     date_posted = models.DateTimeField(default=timezone.now)
