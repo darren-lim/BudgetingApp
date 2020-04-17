@@ -4,7 +4,7 @@ from django.shortcuts import render
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.views.generic import (
     ListView, DetailView, CreateView, UpdateView, DeleteView)
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
 from .models import Transaction
 
 '''transactions = [
@@ -22,12 +22,29 @@ from .models import Transaction
 ]'''
 
 
-def home(request):
+def home(request, id):
+    transactions = Transaction.objects.get(id=id)
+
+
     context = {'transactions': Transaction.objects.all()}
     # reference subdirectory within the template file.
     # in the 3rd paramter we pass in the information for our home page in the form of a dictionary called posts.
     # our views will look for 'posts'(key)
     return render(request, 'budgeting/home.html', context)
+
+def new_transaction(request):
+    if request.method == "POST":
+        form = TransCreateView(request.POST)
+
+        #if form.form_valid():
+        #    n = form.cleaned_data["name"]
+        #    request.user.transaction_set.create(name=n)
+
+        return HttpResponseRedirect('budgeting-home')
+    else:
+        form = TransCreateView()
+
+    return render(request, "budgeting/transaction_form.html", {"form": form})
 
 
 class TransListView(ListView):

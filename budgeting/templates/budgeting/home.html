@@ -4,24 +4,16 @@
 <!-- This is a for loop-->
 <!-- double braces allows us to access a variable. We use dot syntax on python dictionary in html. -->
 {% for transaction in transactions %}
-<article class="media content-section">
-  <div class="media-body">
-    <div class="article-metadata">
-      <a class="mr-2" href="#"
-        >{{ transaction.type }} - ${{transaction.amount}}</a
-      >
-      <small class="text-muted"
-        >{{ transaction.date_posted|date:"F d, Y"}}</small
-      >
-    </div>
-    <h2>
-      <a
-        class="article-title"
-        href="{% url 'transaction-detail' transaction,id %"
-        >{{ transaction.source }}</a
-      >
-    </h2>
-    <p class="article-content">{{ transaction.notes }}</p>
-  </div>
-</article>
+    <article class="media content-section">
+      <div class="media-body">
+        <div class="article-metadata">
+          <a class="mr-2" href="#">{{ transaction.type }} - ${{transaction.amount}}</a>
+          <small class="text-muted">{{ transaction.date_posted|date:"F d, Y"}}</small>
+        </div>
+        <h2>
+          <a class="article-title" href="{% url 'transaction-detail' transaction.id %}">{{ transaction.source }}</a>
+        </h2>
+        <p class="article-content">{{ transaction.notes }}</p>
+      </div>
+    </article>
 {% endfor %} {% endblock content %}
