@@ -15,6 +15,9 @@ class TransListView(ListView):
     # the "-" sign makes transactions order from newest to oldest (top-bottom order)
     ordering = ['-date_posted']
 
+    def get_queryset(self):
+        return self.model.objects.filter(author=self.request.user)
+
 
 class TransDetailView(DetailView):
     model = Transaction
