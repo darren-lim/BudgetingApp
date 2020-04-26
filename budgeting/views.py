@@ -7,28 +7,6 @@ from django.views.generic import (
 from django.http import HttpResponse
 from .models import Transaction
 
-'''transactions = [
-    {'type': 'Withdrawal',
-     'amount': '70',
-     'source': 'Groceries',
-     'notes': '',
-     'date_posted': 'April 4, 2020'},
-
-    {'type': 'Deposit',
-     'amount': '20',
-     'source': 'Part-time Job',
-     'notes': '',
-     'date_posted': 'April 4, 2020'}
-]'''
-
-
-def home(request):
-    context = {'transactions': Transaction.objects.all()}
-    # reference subdirectory within the template file.
-    # in the 3rd paramter we pass in the information for our home page in the form of a dictionary called posts.
-    # our views will look for 'posts'(key)
-    return render(request, 'budgeting/home.html', context)
-
 
 class TransListView(ListView):
     model = Transaction
@@ -51,6 +29,12 @@ class TransCreateView(LoginRequiredMixin, CreateView):
     def form_valid(self, form):  # sets the logged in user as the author of that transaction
         form.instance.author = self.request.user
         return super().form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        title = "Create Transaction"
+        context["title"] = title
+        return context
 
 
 # UserPassesTestMixin can be used as a parameter if we implement test_func
@@ -82,3 +66,27 @@ class TransDeleteView(LoginRequiredMixin, DeleteView):
 def about(request):
     # in the 3rd paramter we pass in the title directly as a dictionary. This will pass into our about.html.
     return render(request, 'budgeting/about.html', {'title': 'About'})
+
+
+'''transactions = [
+    {'type': 'Withdrawal',
+     'amount': '70',
+     'source': 'Groceries',
+     'notes': '',
+     'date_posted': 'April 4, 2020'},
+
+    {'type': 'Deposit',
+     'amount': '20',
+     'source': 'Part-time Job',
+     'notes': '',
+     'date_posted': 'April 4, 2020'}
+]
+
+
+def home(request):
+    context = {'transactions': Transaction.objects.all()}
+    # reference subdirectory within the template file.
+    # in the 3rd paramter we pass in the information for our home page in the form of a dictionary called context.
+    # our views will look for 'context'(key)
+    return render(request, 'budgeting/home.html', context)
+'''
