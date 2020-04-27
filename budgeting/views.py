@@ -16,7 +16,10 @@ class TransListView(ListView):
     ordering = ['-date_posted']
 
     def get_queryset(self):
-        return self.model.objects.filter(author=self.request.user)
+        if self.request.user.is_authenticated:
+            return self.model.objects.filter(author=self.request.user)
+        else:
+            return None
 
 
 class TransDetailView(DetailView):
