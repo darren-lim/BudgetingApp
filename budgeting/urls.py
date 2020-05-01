@@ -9,7 +9,7 @@ urlpatterns = [
     path('', TransListView.as_view(), name='budgeting-home'),
     path('transaction/<int:pk>/', TransDetailView.as_view(),
          name='transaction-detail'),
-    path('transaction/new/', TransCreateView.as_view(),
+    path('transaction/new/<str:parameter>/', TransCreateView.as_view(),
          name='transaction-create'),
     path('transaction/<int:pk>/update/', TransUpdateView.as_view(),
          name='transaction-update'),

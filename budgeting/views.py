@@ -4,7 +4,7 @@ from django.shortcuts import render
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.views.generic import (
     ListView, DetailView, CreateView, UpdateView, DeleteView)
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
 from .models import Transaction
 
 
@@ -14,6 +14,8 @@ class TransListView(ListView):
     context_object_name = 'transactions'
     # the "-" sign makes transactions order from newest to oldest (top-bottom order)
     ordering = ['-date_posted']
+
+    #maybe get the specific models???
 
     def get_queryset(self):
         if self.request.user.is_authenticated:
@@ -30,23 +32,24 @@ class TransDetailView(DetailView):
 
 class TransCreateView(LoginRequiredMixin, CreateView):
     model = Transaction
-    fields = ['t_type', 'amount', 'source', 'notes']
+    fields = ['amount', 'source', 'notes']
 
     def form_valid(self, form):  # sets the logged in user as the author of that transaction
         form.instance.author = self.request.user
+        form.instance.t_type = self.kwargs['parameter']
         return super().form_valid(form)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        title = "Create Transaction"
-        context["title"] = title
+        context['t_type'] = self.kwargs['parameter']
+        # need to save the t_type to the model here
         return context
 
 
 # UserPassesTestMixin can be used as a parameter if we implement test_func
 class TransUpdateView(LoginRequiredMixin, UpdateView):
     model = Transaction
-    fields = ['t_type', 'amount', 'source', 'notes']
+    fields = ['amount', 'source', 'notes']
 
     def form_valid(self, form):  # sets the logged in user as the author of that transaction
         form.instance.author = self.request.user
