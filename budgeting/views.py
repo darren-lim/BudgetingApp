@@ -15,6 +15,8 @@ class TransListView(ListView):
     # the "-" sign makes transactions order from newest to oldest (top-bottom order)
     ordering = ['-date_posted']
 
+    #maybe get the specific models???
+
     def get_queryset(self):
         if self.request.user.is_authenticated:
             return self.model.objects.filter(author=self.request.user)
@@ -34,13 +36,13 @@ class TransCreateView(LoginRequiredMixin, CreateView):
 
     def form_valid(self, form):  # sets the logged in user as the author of that transaction
         form.instance.author = self.request.user
+        form.instance.t_type = self.kwargs['parameter']
         return super().form_valid(form)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        title = self.kwargs['parameter']
-        context["title"] = title
-        self.model.t_type = title
+        context['t_type'] = self.kwargs['parameter']
+        # need to save the t_type to the model here
         return context
 
 
