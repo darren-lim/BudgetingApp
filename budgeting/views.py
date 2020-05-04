@@ -7,6 +7,8 @@ from django.views.generic import (
 from django.http import HttpResponse, HttpResponseRedirect
 from .models import Transaction
 
+from .forms import FormForm
+
 
 class TransListView(ListView):
     model = Transaction
@@ -31,31 +33,64 @@ class TransDetailView(DetailView):
 
 
 class TransCreateView(LoginRequiredMixin, CreateView):
+    #source = ('Job', 'Food', 'Gas')
     model = Transaction
-    fields = ['amount', 'source', 'notes']
+    form_class = FormForm
+    # model = Transaction
+
+    template_name = 'budgeting/transaction_form.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(TransCreateView, self).get_context_data(**kwargs)
+        context['t_type'] = self.kwargs['parameter']
+        return context
+
+    # if I leave out get_form() the object is successfully saved
+    # but the user's choice is not limited
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user
+        source = ('Job', 'Food', 'Gas')
+        kwargs['source'] = source
+        return kwargs
 
     def form_valid(self, form):  # sets the logged in user as the author of that transaction
         form.instance.author = self.request.user
         form.instance.t_type = self.kwargs['parameter']
         return super().form_valid(form)
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['t_type'] = self.kwargs['parameter']
-        # need to save the t_type to the model here
-        return context
-
 
 # UserPassesTestMixin can be used as a parameter if we implement test_func
 class TransUpdateView(LoginRequiredMixin, UpdateView):
+    model = Transaction
+    form_class = FormForm
+    # model = Transaction
+
+    template_name = 'budgeting/transaction_update.html'
+
+    # if I leave out get_form() the object is successfully saved
+    # but the user's choice is not limited
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user
+        source = ('Job', 'Food', 'Gas')
+        kwargs['source'] = source
+        return kwargs
+
+    def form_valid(self, form):  # sets the logged in user as the author of that transaction
+        form.instance.author = self.request.user
+        return super().form_valid(form)
+    '''
     model = Transaction
     fields = ['amount', 'source', 'notes']
 
     def form_valid(self, form):  # sets the logged in user as the author of that transaction
         form.instance.author = self.request.user
         return super().form_valid(form)
-
-    '''def test_func(self): # prevents any other users from updating but this shouldn't happen in the first place because transactions are private (more for smth like twitter)
+    
+    def test_func(self): # prevents any other users from updating but this shouldn't happen in the first place because transactions are private (more for smth like twitter)
         post = self.get_object()
         if self.request.user == post.author:
             return True
@@ -71,6 +106,15 @@ class TransDeleteView(LoginRequiredMixin, DeleteView):
             return True
         return False'''
 
+def country_form(request, parameter):
+    # instead of hardcoding a list you could make a query of a model, as long as
+    # it has a __str__() method you should be able to display it.
+    country_list = ('Mexico', 'USA', 'China', 'France')
+    form = FormForm(data_list=country_list)
+
+    return render(request, 'budgeting/transaction_form.html', {
+        'form': form
+    })
 
 def about(request):
     # in the 3rd paramter we pass in the title directly as a dictionary. This will pass into our about.html.

@@ -11,6 +11,7 @@ urlpatterns = [
          name='transaction-detail'),
     path('transaction/new/<str:parameter>/', TransCreateView.as_view(),
          name='transaction-create'),
+    #path('transaction/new/<str:parameter>/', views.country_form, name='transaction-create'),
     path('transaction/<int:pk>/update/', TransUpdateView.as_view(),
          name='transaction-update'),
     path('transaction/<int:pk>/delete/', TransDeleteView.as_view(),
