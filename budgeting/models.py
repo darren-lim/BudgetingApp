@@ -2,13 +2,15 @@ from django.db import models  # databases!
 from django.utils import timezone
 from django.contrib.auth.models import User
 from django.urls import reverse
+from django.db import models
+from .fields import ListTextWidget
+from django import forms
 
 
 class Transaction(models.Model):
-    t_type = models.CharField(max_length=10, null=True)
+    t_type = models.CharField(max_length=15, null=True)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
-    source = models.CharField(
-        "Source (e.g. Part-time job, My Bank Account)", max_length=30)
+    source = models.CharField("Source (e.g. Part-time job, My Bank Account)", max_length=30)
     notes = models.TextField("Additional Information", blank=True, null=True)
     date_posted = models.DateTimeField(default=timezone.now)
     author = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -20,8 +22,8 @@ class Transaction(models.Model):
         # reverse will return the full path as a string so we can redirect to our transaction-detail template page for our newly created transaction
         return reverse('transaction-detail', kwargs={'pk': self.pk})
 
-    def save(self, *args, **kwargs):
-        super(Transaction, self).save(*args, **kwargs)
+    def add_type(self, typeName):
+        self.t_type = typeName
 
 
 # class Deposit(Transaction):
