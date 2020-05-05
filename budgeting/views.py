@@ -10,6 +10,34 @@ from .models import Transaction
 from .forms import FormForm
 
 
+class HomeView(ListView):
+    model = Transaction
+    template_name = 'budgeting/home.html'
+    context_object_name = 'transactions'
+    # the "-" sign makes transactions order from newest to oldest (top-bottom order)
+    ordering = ['-date_posted']
+
+    # maybe get the specific models???
+
+    def get_queryset(self):
+        labels = []
+        data = []
+
+        queryset = self.model.objects.filter(author=self.request.user)
+        for transaction in queryset:
+            labels.append(transaction.source)
+            data.append(transaction.amount)
+
+        if self.request.user.is_authenticated:
+            return {'transaction_list': self.model.objects.filter(author=self.request.user),
+                    'labels': labels,
+                    'data': data
+                    }
+
+        else:
+            return None
+
+
 class TransListView(ListView):
     model = Transaction
     template_name = 'budgeting/home.html'
@@ -17,7 +45,7 @@ class TransListView(ListView):
     # the "-" sign makes transactions order from newest to oldest (top-bottom order)
     ordering = ['-date_posted']
 
-    #maybe get the specific models???
+    # maybe get the specific models???
 
     def get_queryset(self):
         if self.request.user.is_authenticated:
@@ -33,7 +61,7 @@ class TransDetailView(DetailView):
 
 
 class TransCreateView(LoginRequiredMixin, CreateView):
-    #source = ('Job', 'Food', 'Gas')
+    # source = ('Job', 'Food', 'Gas')
     model = Transaction
     form_class = FormForm
     # model = Transaction
@@ -82,6 +110,7 @@ class TransUpdateView(LoginRequiredMixin, UpdateView):
     def form_valid(self, form):  # sets the logged in user as the author of that transaction
         form.instance.author = self.request.user
         return super().form_valid(form)
+
     '''
     model = Transaction
     fields = ['amount', 'source', 'notes']
@@ -106,6 +135,7 @@ class TransDeleteView(LoginRequiredMixin, DeleteView):
             return True
         return False'''
 
+
 def country_form(request, parameter):
     # instead of hardcoding a list you could make a query of a model, as long as
     # it has a __str__() method you should be able to display it.
@@ -115,6 +145,7 @@ def country_form(request, parameter):
     return render(request, 'budgeting/transaction_form.html', {
         'form': form
     })
+
 
 def about(request):
     # in the 3rd paramter we pass in the title directly as a dictionary. This will pass into our about.html.
