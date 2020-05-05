@@ -1,16 +1,16 @@
 from django.db import models  # databases!
-from django.utils import timezone
 from django.contrib.auth.models import User
 from django.urls import reverse
 
 
 class Transaction(models.Model):
-    t_type = models.CharField(max_length=15, null=True)
+    t_type = models.CharField("Deposit/Withdrawal", max_length=15, null=True)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     source = models.CharField(
-        "Source (e.g. Part-time job, My Bank Account)", max_length=30)
+        "Source", max_length=30)
     notes = models.TextField("Additional Information", blank=True, null=True)
-    date_posted = models.DateTimeField(default=timezone.now)
+    date_posted = models.DateField("Transaction Date",
+                                   auto_now_add=False, auto_now=False, blank=False, null=False)
     author = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def __str__(self):
@@ -22,6 +22,3 @@ class Transaction(models.Model):
 
     def add_type(self, typeName):
         self.t_type = typeName
-
-
-# class Deposit(Transaction):
