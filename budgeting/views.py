@@ -8,7 +8,6 @@ from .models import Transaction
 from .forms import TransactionForm, UpdateForm
 
 
-
 class HomeView(ListView):
     model = Transaction
     template_name = 'budgeting/home.html'
@@ -19,22 +18,19 @@ class HomeView(ListView):
     # maybe get the specific models???
 
     def get_queryset(self):
-        labels = []
-        data = []
-
-        queryset = self.model.objects.filter(author=self.request.user)
-        for transaction in queryset:
-            labels.append(transaction.source)
-            data.append(transaction.amount)
 
         if self.request.user.is_authenticated:
+            labels = []
+            data = []
+            queryset = self.model.objects.filter(author=self.request.user)
+            for transaction in queryset:
+                labels.append(transaction.source)
+                data.append(transaction.amount)
             return {'transaction_list': self.model.objects.filter(author=self.request.user),
                     'labels': labels,
                     'data': data
                     }
-
-        else:
-            return None
+        return None
 
 
 class TransListView(ListView):
@@ -106,10 +102,6 @@ class TransUpdateView(LoginRequiredMixin, UpdateView):
         form.instance.author = self.request.user
         return super().form_valid(form)
 
-    '''
-    model = Transaction
-    fields = ['amount', 'source', 'notes']
-
 
 class TransDeleteView(LoginRequiredMixin, DeleteView):
     model = Transaction
@@ -122,27 +114,6 @@ class TransDeleteView(LoginRequiredMixin, DeleteView):
         return False'''
 
 
-def country_form(request, parameter):
-    # instead of hardcoding a list you could make a query of a model, as long as
-    # it has a __str__() method you should be able to display it.
-    country_list = ('Mexico', 'USA', 'China', 'France')
-    form = FormForm(data_list=country_list)
-
-    return render(request, 'budgeting/transaction_form.html', {
-        'form': form
-    })
-
-
 def about(request):
     # in the 3rd paramter we pass in the title directly as a dictionary. This will pass into our about.html.
     return render(request, 'budgeting/about.html', {'title': 'About'})
-
-
-'''
-def home(request):
-    context = {'transactions': Transaction.objects.all()}
-    # reference subdirectory within the template file.
-    # in the 3rd paramter we pass in the information for our home page in the form of a dictionary called context.
-    # our views will look for 'context'(key)
-    return render(request, 'budgeting/home.html', context)
-'''
