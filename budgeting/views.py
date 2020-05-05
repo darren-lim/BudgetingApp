@@ -8,6 +8,35 @@ from .models import Transaction
 from .forms import TransactionForm, UpdateForm
 
 
+
+class HomeView(ListView):
+    model = Transaction
+    template_name = 'budgeting/home.html'
+    context_object_name = 'transactions'
+    # the "-" sign makes transactions order from newest to oldest (top-bottom order)
+    ordering = ['-date_posted']
+
+    # maybe get the specific models???
+
+    def get_queryset(self):
+        labels = []
+        data = []
+
+        queryset = self.model.objects.filter(author=self.request.user)
+        for transaction in queryset:
+            labels.append(transaction.source)
+            data.append(transaction.amount)
+
+        if self.request.user.is_authenticated:
+            return {'transaction_list': self.model.objects.filter(author=self.request.user),
+                    'labels': labels,
+                    'data': data
+                    }
+
+        else:
+            return None
+
+
 class TransListView(ListView):
     model = Transaction
     template_name = 'budgeting/home.html'
@@ -31,6 +60,7 @@ class TransDetailView(DetailView):
 
 
 class TransCreateView(LoginRequiredMixin, CreateView):
+    # source = ('Job', 'Food', 'Gas')
     model = Transaction
     form_class = TransactionForm
     template_name = 'budgeting/transaction_form.html'
@@ -76,6 +106,10 @@ class TransUpdateView(LoginRequiredMixin, UpdateView):
         form.instance.author = self.request.user
         return super().form_valid(form)
 
+    '''
+    model = Transaction
+    fields = ['amount', 'source', 'notes']
+
 
 class TransDeleteView(LoginRequiredMixin, DeleteView):
     model = Transaction
@@ -86,6 +120,17 @@ class TransDeleteView(LoginRequiredMixin, DeleteView):
         if self.request.user == post.author:
             return True
         return False'''
+
+
+def country_form(request, parameter):
+    # instead of hardcoding a list you could make a query of a model, as long as
+    # it has a __str__() method you should be able to display it.
+    country_list = ('Mexico', 'USA', 'China', 'France')
+    form = FormForm(data_list=country_list)
+
+    return render(request, 'budgeting/transaction_form.html', {
+        'form': form
+    })
 
 
 def about(request):
