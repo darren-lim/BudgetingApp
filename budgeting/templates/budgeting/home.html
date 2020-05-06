@@ -20,11 +20,19 @@
             <h3 class="display-4">
                Spending
             </h3>
-            <div class="container" style="padding-bottom:3%">
-                <canvas id="pie-chart"></canvas>
-            </div>
+            {% if transactions.data|length == 0 %}
+                <div class="card" style="background-color: #ffb8b8; margin-left: 15%; margin-right: 15%; padding: 5%">
+                    <h4>
+                        You have not spent any money
+                    </h4>
+                </div>
+            {% else %}
+                <div class="container" style="padding-bottom:3%">
+                    <canvas id="pie-chart"></canvas>
+                </div>
+            {% endif %}
             <h3 class="display-4">
-                Recent Transactions
+                5 Recent Transactions
             </h3>
         </div>
 
@@ -33,18 +41,21 @@
             <div class="col-md-8">
                 {% if transactions != None %}
                     {% for transaction in transactions.transaction_list %}
-                    <article class="media content-section">
-                      <div class="media-body">
-                        <div class="article-metadata">
-                          <a class="mr-2" href="{% url 'transaction-detail' transaction.id %}">{{ transaction.t_type}} from {{transaction.source}}</a>
-                          <small class="text-muted">{{ transaction.date_posted|date:"F d, Y"}}</small>
-                            <small class="text-muted">{{ transactions.data }}</small>
-                        </div>
-                        <h2>
-                          <a class="article-title" href="{% url 'transaction-detail' transaction.id %}">${{ transaction.amount }}</a>
-                        </h2>
-                      </div>
-                    </article>
+                        <article class="media content-section">
+                          <div class="media-body">
+                            <div class="article-metadata">
+                              {% if transaction.t_type  == 'Withdraw' %}
+                                <a class="mr-2" href="{% url 'transaction-detail' transaction.id %}">{{ transaction.t_type}} for {{transaction.source}}</a>
+                              {% else %}
+                                <a class="mr-2" href="{% url 'transaction-detail' transaction.id %}">{{ transaction.t_type}} from {{transaction.source}}</a>
+                              {% endif %}
+                              <small class="text-muted">{{ transaction.date_posted|date:"F d, Y"}}</small>
+                            </div>
+                            <h2>
+                              <a class="article-title" href="{% url 'transaction-detail' transaction.id %}">${{ transaction.amount }}</a>
+                            </h2>
+                          </div>
+                        </article>
                     {% endfor %}
                 {% endif %}
             </div>

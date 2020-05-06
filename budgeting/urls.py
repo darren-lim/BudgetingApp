@@ -7,6 +7,7 @@ from .views import (TransListView, TransDetailView,
 
 urlpatterns = [
     path('', HomeView.as_view(), name='budgeting-home'),
+    path('all_transactions/', TransListView.as_view(), name='all-transactions'),
     path('transaction/<int:pk>/', TransDetailView.as_view(),
          name='transaction-detail'),
     path('transaction/new/<str:parameter>/', TransCreateView.as_view(),

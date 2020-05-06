@@ -1,0 +1,58 @@
+{% extends "budgeting/base.html" %}
+<!-- ^ Uses the base template (base.html)-->
+{% block content %}
+<!-- This is a for loop-->
+<!-- double braces allows us to access a variable. We use dot syntax on python dictionary in html. -->
+
+    {% if user.is_authenticated %}
+        <div class="row">
+            <div class="col-md-8">
+                {% if transactions != None %}
+                    {% for transaction in transactions %}
+                    <article class="media content-section">
+                      <div class="media-body">
+                        <div class="article-metadata">
+                          {% if transaction.t_type  == 'Withdraw' %}
+                            <a class="mr-2" href="{% url 'transaction-detail' transaction.id %}">{{ transaction.t_type}} for {{transaction.source}}</a>
+                          {% else %}
+                            <a class="mr-2" href="{% url 'transaction-detail' transaction.id %}">{{ transaction.t_type}} from {{transaction.source}}</a>
+                          {% endif %}
+                          <small class="text-muted">{{ transaction.date_posted|date:"F d, Y"}}</small>
+                          <small class="text-muted">{{ transactions.data }}</small>
+                        </div>
+                        <h2>
+                          <a class="article-title" href="{% url 'transaction-detail' transaction.id %}">${{ transaction.amount }}</a>
+                        </h2>
+                      </div>
+                    </article>
+                    {% endfor %}
+                {% endif %}
+            </div>
+            <div class="col-md-4">
+                <div class="content-section">
+                  <h3>Create A New Transaction</h3>
+                  <p class='text-muted'>Add new transactions here.</p>
+                    <ul class="list-group">
+                    <li class="list-group-item list-group-item-light"><a href="{% url 'transaction-create' parameter='Deposit' %}">Deposit</a></li>
+                      <li class="list-group-item list-group-item-light"><a href="{% url 'transaction-create' parameter='Withdraw' %}">Withdraw</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="row">
+            <div class="col-md-8">
+                <article class="media content-section">
+                  <div class="media-body">
+                    <div class="article-metadata">
+                        <h2>
+                          Welcome to Treat Yo Self, a Budgeting Website for your Poor Ass Needs
+                        </h2>
+                    </div>
+                      <p>Please Register or Log In to start.</p>
+                  </div>
+                </article>
+            </div>
+        </div>
+    {% endif %}
+{% endblock content %}

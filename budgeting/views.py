@@ -23,11 +23,12 @@ class HomeView(ListView):
             labels = []
             data = []
             queryset = self.model.objects.filter(author=self.request.user)
+            queryset = queryset.filter(t_type__iexact='Withdraw')
             for transaction in queryset:
                 labels.append(transaction.source)
                 amount = float(transaction.amount)
                 data.append(amount)
-            return {'transaction_list': self.model.objects.filter(author=self.request.user),
+            return {'transaction_list': self.model.objects.filter(author=self.request.user)[:5],
                     'labels': labels,
                     'data': data
                     }
@@ -36,7 +37,7 @@ class HomeView(ListView):
 
 class TransListView(ListView):
     model = Transaction
-    template_name = 'budgeting/home.html'
+    template_name = 'budgeting/all_transactions.html'
     context_object_name = 'transactions'
     # the "-" sign makes transactions order from newest to oldest (top-bottom order)
     ordering = ['-date_posted']
