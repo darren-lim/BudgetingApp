@@ -1,6 +1,7 @@
 from django.db import models  # databases!
 from django.contrib.auth.models import User
 from django.urls import reverse
+from django.utils import timezone
 
 
 class Transaction(models.Model):
@@ -9,8 +10,9 @@ class Transaction(models.Model):
     source = models.CharField(
         "Source", max_length=30)
     notes = models.TextField("Additional Information", blank=True, null=True)
-    date_posted = models.DateField("Transaction Date",
-                                   auto_now_add=False, auto_now=False, blank=False, null=False)
+    #date_posted = models.DateTimeField(default=timezone.now, null=True)
+    date_posted = models.DateTimeField("Transaction Date",
+                                       auto_now_add=False, auto_now=False, blank=False, null=False)
     author = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def __str__(self):

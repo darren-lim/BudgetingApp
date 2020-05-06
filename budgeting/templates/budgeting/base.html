@@ -11,6 +11,10 @@
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
     integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous" />
 
+    <link rel="stylesheet"  href="{% static 'blog/main.css'%}">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.min.js"></script>
+
     {% if title %}
     <title>Treat Yo Self- {{title}}</title>
     {% else %}
@@ -48,26 +52,17 @@
             <!-- Navbar Right Side -->
             <div class="navbar-nav">
               {% if user.is_authenticated %}
-                    <a class="nav-item nav-link" href="{% url 'profile' %}">Profile</a>
-                    <a class="nav-item nav-link" href="{% url 'logout' %}">Logout</a>
-                {% else %}
-                    <a class="nav-item nav-link" href="{% url 'login' %}">Login</a>
-                    <a class="nav-item nav-link" href="{% url 'register' %}">Register</a>
-                {% endif %}
+                <a class="nav-item nav-link" href="{% url 'transaction-create' parameter='Deposit' %}">Deposit</a>
+                <a class="nav-item nav-link" href="{% url 'transaction-create' parameter='Withdraw' %}">Withdraw</a>
+                <a class="nav-item nav-link" href="{% url 'profile' %}">Profile</a>
+                <a class="nav-item nav-link" href="{% url 'logout' %}">Logout</a>
+              {% else %}
+                <a class="nav-item nav-link" href="{% url 'login' %}">Login</a>
+                <a class="nav-item nav-link" href="{% url 'register' %}">Register</a>
+              {% endif %}
             </div>
           </div>
-          <!-- Navbar Right Side -->
-          <div class="navbar-nav">
-            {% if user.is_authenticated %}
-            <a class="nav-item nav-link" href="{% url 'profile' %}">Profile</a>
-            <a class="nav-item nav-link" href="{% url 'logout' %}">Logout</a>
-            {% else %}
-            <a class="nav-item nav-link" href="{% url 'login' %}">Login</a>
-            <a class="nav-item nav-link" href="{% url 'register' %}">Register</a>
-            {% endif %}
-          </div>
         </div>
-      </div>
     </nav>
   </header>
 
@@ -97,6 +92,4 @@
     ></script>
 
   </body>
-</html>
-
 </html>

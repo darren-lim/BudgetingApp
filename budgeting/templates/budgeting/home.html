@@ -5,11 +5,29 @@
 <!-- double braces allows us to access a variable. We use dot syntax on python dictionary in html. -->
 
     {% if user.is_authenticated %}
-        <div class="container">
-            <div class="col-md-8">
+        <div class="text-center">
+            <div class="jumbotron" style="max-height: 300px;">
+                <div class="container">
+                    <h1 class="display-4">
+                        Total Amount
+                    </h1>
+                    <hr class="my-1">
+                    <h2 class="display-3">
+                        $1000
+                    </h2>
+                </div>
+            </div>
+            <h3 class="display-4">
+               Spending
+            </h3>
+            <div class="container" style="padding-bottom:3%">
                 <canvas id="pie-chart"></canvas>
             </div>
+            <h3 class="display-4">
+                Recent Transactions
+            </h3>
         </div>
+
 
         <div class="row">
             <div class="col-md-8">
@@ -30,18 +48,16 @@
                     {% endfor %}
                 {% endif %}
             </div>
-            {% if user.is_authenticated %}
-                <div class="col-md-4">
-                    <div class="content-section">
-                      <h3>Create A New Transaction</h3>
-                      <p class='text-muted'>Add new transactions here.</p>
-                        <ul class="list-group">
-                        <li class="list-group-item list-group-item-light"><a href="{% url 'transaction-create' parameter='Deposit' %}">Deposit</a></li>
-                          <li class="list-group-item list-group-item-light"><a href="{% url 'transaction-create' parameter='Withdraw' %}">Withdraw</a></li>
-                        </ul>
-                    </div>
+            <div class="col-md-4">
+                <div class="content-section">
+                  <h3>Create A New Transaction</h3>
+                  <p class='text-muted'>Add new transactions here.</p>
+                    <ul class="list-group">
+                    <li class="list-group-item list-group-item-light"><a href="{% url 'transaction-create' parameter='Deposit' %}">Deposit</a></li>
+                      <li class="list-group-item list-group-item-light"><a href="{% url 'transaction-create' parameter='Withdraw' %}">Withdraw</a></li>
+                    </ul>
                 </div>
-            {% endif %}
+            </div>
         </div>
     {% else %}
         <div class="row">
@@ -60,27 +76,35 @@
         </div>
     {% endif %}
     <script>
-        let config = {
+        console.log("{{ transactions.data|safe }}");
+        console.log("{{ transactions.labels|safe }}");
+        let ctx = document.getElementById('pie-chart').getContext('2d');
+        let pieChart = new Chart(ctx, {
           type: 'pie',
           data: {
             datasets: [{
               data: {{ transactions.data|safe }},
+              //data:[100, 200, 500, 1000],
               backgroundColor: [
-                '#696969', '#808080', '#A9A9A9', '#C0C0C0', '#D3D3D3'
+                '#FFEB99', '#ADFF99', '#99FFF3', '#F399FF'
               ],
               label: 'Money'
             }],
-            labels: {{ transactions.labels|safe }}
+            labels: {{ transactions.labels|safe }},
+            //labels:['Dinner', 'Gas', 'PC', 'House'],
+            borderWidth:1,
           },
           options: {
+            maintainAspectRatio: true,
+            aspectRatio: 2.5,
             responsive: true
           }
-        };
+        });
 
-        window.onload = function() {
-          let ctx = document.getElementById('pie-chart').getContext('2d');
-          window.myPie = new Chart(ctx, config);
-        };
+        //window.onload = function() {
+        //  let ctx = document.getElementById('pie-chart').getContext('2d');
+        // window.myPie = new Chart(ctx, config);
+        //};
 
     </script>
 {% endblock content %}

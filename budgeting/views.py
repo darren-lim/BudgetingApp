@@ -25,7 +25,8 @@ class HomeView(ListView):
             queryset = self.model.objects.filter(author=self.request.user)
             for transaction in queryset:
                 labels.append(transaction.source)
-                data.append(transaction.amount)
+                amount = float(transaction.amount)
+                data.append(amount)
             return {'transaction_list': self.model.objects.filter(author=self.request.user),
                     'labels': labels,
                     'data': data
