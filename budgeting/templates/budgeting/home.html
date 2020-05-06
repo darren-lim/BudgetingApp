@@ -87,8 +87,15 @@
         </div>
     {% endif %}
     <script>
-        console.log("{{ transactions.data|safe }}");
-        console.log("{{ transactions.labels|safe }}");
+        const colorScale = d3.interpolateRainbow;
+        let dataLength = {{ transactions.data|length }};
+        const colorRangeInfo = {
+          colorStart: 0,
+          colorEnd: 1,
+          useEndAsStart: false,
+        };
+        let COLORS = interpolateColors(dataLength, colorScale, colorRangeInfo);
+
         let ctx = document.getElementById('pie-chart').getContext('2d');
         let pieChart = new Chart(ctx, {
           type: 'pie',
@@ -96,9 +103,7 @@
             datasets: [{
               data: {{ transactions.data|safe }},
               //data:[100, 200, 500, 1000],
-              backgroundColor: [
-                '#FFEB99', '#ADFF99', '#99FFF3', '#F399FF'
-              ],
+              backgroundColor: COLORS,
               label: 'Money'
             }],
             labels: {{ transactions.labels|safe }},
