@@ -1,9 +1,6 @@
 from django.db import models  # databases!
 from django.contrib.auth.models import User
 from django.urls import reverse
-from django.utils import timezone
-
-from budgeting_project import settings
 
 
 class Transaction(models.Model):
@@ -11,14 +8,13 @@ class Transaction(models.Model):
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     source = models.CharField(
         "Source", max_length=30)
+    date_posted = models.DateField("Transaction Date",
+                                   auto_now_add=False, auto_now=False, blank=False, null=True)
     notes = models.TextField("Additional Information", blank=True, null=True)
-    # date_posted = models.DateTimeField(default=timezone.now, null=True)
-    date_posted = models.DateField("Transaction Date (mm/dd/yyyy)",
-                                   auto_now_add=False, auto_now=False, blank=False, null=False)
     author = models.ForeignKey(User, on_delete=models.CASCADE)
-
-    #class Meta:
-    #    ordering = ['-date_posted']
+    in_history = models.BooleanField(default=False)
+    year = models.IntegerField(null=True)
+    month = models.IntegerField(null=True)
 
     def __str__(self):
         return self.source
@@ -29,3 +25,40 @@ class Transaction(models.Model):
 
     def add_type(self, typeName):
         self.t_type = typeName
+
+
+class Total(models.Model):
+    initial_amount = models.DecimalField("Initial Balance",
+                                         max_digits=10, decimal_places=2, null=True)
+    total_amount = models.DecimalField(
+        max_digits=10, decimal_places=2, null=True)
+    total_amount_gained = models.DecimalField(
+        max_digits=10, decimal_places=2, null=True)
+    total_amount_spent = models.DecimalField(
+        max_digits=10, decimal_places=2, null=True)
+
+    author = models.OneToOneField(User, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return str(self.author)
+
+    def get_absolute_url(self):
+        # reverse will return the full path as a string so we can redirect to our budgeting-home template page
+        return reverse('budgeting-home')
+
+
+class History(models.Model):
+    year = models.IntegerField(null=True)
+    month = models.IntegerField(null=True)
+    monthly_amount_gained = models.DecimalField(
+        max_digits=10, decimal_places=2, null=True)
+    monthly_amount_spent = models.DecimalField(
+        max_digits=10, decimal_places=2, null=True)
+    author = models.OneToOneField(User, on_delete=models.CASCADE, null=True)
+
+    def __str__(self):
+        return str(self.author)
+
+    def get_absolute_url(self):
+        # reverse will return the full path as a string so we can redirect to our budgeting-home template page
+        return reverse('budgeting-home')

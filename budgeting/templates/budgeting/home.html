@@ -2,128 +2,144 @@
 <!-- ^ Uses the base template (base.html)-->
 {% block content %}
 
-    {% if user.is_authenticated %}
-        <!-- PLEASE CHANGE THE BACKGROUND COLOR OMG SO BAD -->
-        <div class="jumbotron text-center" style="background-color: #d3faff; max-height: 300px;">
-            <div class="container">
-                <h1 class="display-4">
-                    Total Amount
-                </h1>
-                <hr class="my-1">
-                <h2 class="display-3">
-                    $1000
-                </h2>
-            </div>
+{% if user.is_authenticated %}
+<!-- PLEASE CHANGE THE BACKGROUND COLOR OMG SO BAD -->
+<div class="jumbotron text-center" style="background-color: #d3faff; max-height: 300px;">
+  <div class="container">
+    <h1 class="display-4">
+      {% if total.total == None %}
+      <li class="list-group-item list-group-item-light"><a href="{% url 'total-create'%}">Enter
+          your current balance</a></li>
+      {% else %}
+      <li class="list-group-item list-group-item-light"><a href="{% url 'total-create'%}">
+    </h1>
+    <hr class="my-1">
+    <h2 class="display-3">
+      Your Current Balance:
+      ${{total.total}}
+      <li class="list-group-item list-group-item-light"><a href="{% url 'total-create'%}">Amount gained this month:
+          {{total.monthly_gain}}</a></li>
+      <li class="list-group-item list-group-item-light"><a href="{% url 'total-create'%}">Amount spent this month:
+          {{total.monthly_spent}}</a></li>
+      {% endif %}
+    </h2>
+  </div>
+</div>
+{% if total.transaction_list|length == 0 %}
+<div class="jumbotron text-center" style="background-color: #d3faff; margin-left: 15%; margin-right: 15%; padding: 5%">
+  <h4 style="padding-bottom: 5%">
+    Start By Creating a Transaction!
+  </h4>
+  <ul class="list-group">
+    <li class="list-group-item list-group-item-light"><a
+        href="{% url 'transaction-create' parameter='Deposit' %}">Deposit</a></li>
+    <li class="list-group-item list-group-item-light"><a
+        href="{% url 'transaction-create' parameter='Withdraw' %}">Withdraw</a></li>
+  </ul>
+</div>
+{% else %}
+<div class="text-center">
+  <h3 class="display-4">
+    Spending
+  </h3>
+  {% if total.data|length == 0 %}
+  <div style="margin-left: 15%; margin-right: 15%; padding: 3%">
+    <h4 class="card" style="background-color: #d3ffdf; padding: 3%">
+      You have not spent any money (:
+    </h4>
+  </div>
+  {% else %}
+  <div class="container" style="padding-bottom:3%">
+    <canvas id="pie-chart"></canvas>
+  </div>
+  {% endif %}
+</div>
+<div class="row">
+  <div class="col-md-8">
+    <div class="text-center">
+      <h3 class="display-4">
+        5 Recent Transactions
+      </h3>
+    </div>
+    {% for transaction in total.transaction_list %}
+    <article class="media content-section">
+      <div class="media-body">
+        <div class="article-metadata">
+          {% if transaction.t_type  == 'Withdraw' %}
+          <a class="mr-2" href="{% url 'transaction-detail' transaction.id %}">{{ transaction.t_type}} for
+            {{transaction.source}}</a>
+          {% else %}
+          <a class="mr-2" href="{% url 'transaction-detail' transaction.id %}">{{ transaction.t_type}} from
+            {{transaction.source}}</a>
+          {% endif %}
+          <small class="text-muted">{{ transaction.date_posted|date:"F d, Y"}}</small>
         </div>
-        {% if transactions.transaction_list|length == 0 %}
-            <div class="jumbotron text-center" style="background-color: #d3faff; margin-left: 15%; margin-right: 15%; padding: 5%">
-                <h4 style="padding-bottom: 5%">
-                    Start By Creating a Transaction!
-                </h4>
-                <ul class="list-group">
-                  <li class="list-group-item list-group-item-light"><a href="{% url 'transaction-create' parameter='Deposit' %}">Deposit</a></li>
-                  <li class="list-group-item list-group-item-light"><a href="{% url 'transaction-create' parameter='Withdraw' %}">Withdraw</a></li>
-                </ul>
-            </div>
-        {% else %}
-            <div class="text-center">
-                <h3 class="display-4">
-                   Spending
-                </h3>
-                {% if transactions.data|length == 0 %}
-                    <div style="margin-left: 15%; margin-right: 15%; padding: 3%">
-                        <h4 class="card" style="background-color: #d3ffdf; padding: 3%">
-                            You have not spent any money (:
-                        </h4>
-                    </div>
-                {% else %}
-                    <div class="container" style="padding-bottom:3%">
-                        <canvas id="pie-chart"></canvas>
-                    </div>
-                {% endif %}
-            </div>
-            <div class="row">
-                <div class="col-md-8">
-                    <div class="text-center">
-                        <h3 class="display-4">
-                            5 Recent Transactions
-                        </h3>
-                    </div>
-                    {% for transaction in transactions.transaction_list %}
-                        <article class="media content-section">
-                          <div class="media-body">
-                            <div class="article-metadata">
-                              {% if transaction.t_type  == 'Withdraw' %}
-                                <a class="mr-2" href="{% url 'transaction-detail' transaction.id %}">{{ transaction.t_type}} for {{transaction.source}}</a>
-                              {% else %}
-                                <a class="mr-2" href="{% url 'transaction-detail' transaction.id %}">{{ transaction.t_type}} from {{transaction.source}}</a>
-                              {% endif %}
-                              <small class="text-muted">{{ transaction.date_posted|date:"F d, Y"}}</small>
-                            </div>
-                            <h2>
-                              <a class="article-title" href="{% url 'transaction-detail' transaction.id %}">${{ transaction.amount }}</a>
-                            </h2>
-                          </div>
-                        </article>
-                    {% endfor %}
-                </div>
-                <div class="col-md-4">
-                    <div class="content-section">
-                      <h3>Create A New Transaction</h3>
-                      <p class='text-muted'>Add new transactions here.</p>
-                        <ul class="list-group">
-                        <li class="list-group-item list-group-item-light"><a href="{% url 'transaction-create' parameter='Deposit' %}">Deposit</a></li>
-                          <li class="list-group-item list-group-item-light"><a href="{% url 'transaction-create' parameter='Withdraw' %}">Withdraw</a></li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        {% endif %}
-    {% else %}
-        <div class="row">
-            <div class="col-md-8">
-                <article class="media content-section">
-                  <div class="media-body">
-                    <div class="article-metadata">
-                        <h2>
-                          Welcome to Treat Yo Self, a Budgeting Website for your Poor Ass Needs
-                        </h2>
-                    </div>
-                      <p>Please Register or Log In to start.</p>
-                  </div>
-                </article>
-            </div>
+        <h2>
+          <a class="article-title" href="{% url 'transaction-detail' transaction.id %}">${{ transaction.amount }}</a>
+        </h2>
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+  <div class="col-md-4">
+    <div class="content-section">
+      <h3>Create A New Transaction</h3>
+      <p class='text-muted'>Add new transactions here.</p>
+      <ul class="list-group">
+        <li class="list-group-item list-group-item-light"><a
+            href="{% url 'transaction-create' parameter='Deposit' %}">Deposit</a></li>
+        <li class="list-group-item list-group-item-light"><a
+            href="{% url 'transaction-create' parameter='Withdrawal' %}">Withdraw</a></li>
+      </ul>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% else %}
+<div class="row">
+  <div class="col-md-8">
+    <article class="media content-section">
+      <div class="media-body">
+        <div class="article-metadata">
+          <h2>
+            Welcome to Treat Yo Self, a Budgeting Website for your Poor Ass Needs
+          </h2>
         </div>
-    {% endif %}
-    <script>
-        const colorScale = d3.interpolateRainbow;
-        let dataLength = {{ transactions.data|length }};
-        const colorRangeInfo = {
-          colorStart: 0,
-          colorEnd: 1,
-          useEndAsStart: false,
-        };
-        let COLORS = interpolateColors(dataLength, colorScale, colorRangeInfo);
+        <p>Please Register or Log In to start.</p>
+      </div>
+    </article>
+  </div>
+</div>
+{% endif %}
+<script>
+  const colorScale = d3.interpolateRainbow;
+  let dataLength = {{ total.data| length }};
+  const colorRangeInfo = {
+    colorStart: 0,
+    colorEnd: 1,
+    useEndAsStart: false,
+  };
+  let COLORS = interpolateColors(dataLength, colorScale, colorRangeInfo);
 
-        let ctx = document.getElementById('pie-chart').getContext('2d');
-        let pieChart = new Chart(ctx, {
-          type: 'pie',
-          data: {
-            datasets: [{
-              data: {{ transactions.data|safe }},
-              //data:[100, 200, 500, 1000],
-              backgroundColor: COLORS,
-              label: 'Money'
-            }],
-            labels: {{ transactions.labels|safe }},
-            //labels:['Dinner', 'Gas', 'PC', 'House'],
-            borderWidth:1,
+  let ctx = document.getElementById('pie-chart').getContext('2d');
+  let pieChart = new Chart(ctx, {
+    type: 'pie',
+    data: {
+      datasets: [{
+        data: {{ total.data | safe }},
+    //data:[100, 200, 500, 1000],
+    backgroundColor: COLORS,
+    label: 'Money'
+  }],
+    labels: {{ total.labels | safe }},
+  //labels:['Dinner', 'Gas', 'PC', 'House'],
+  borderWidth: 1,
           },
-          options: {
-            maintainAspectRatio: true,
-            aspectRatio: 2.5,
-            responsive: true
-          }
+  options: {
+    maintainAspectRatio: true,
+      aspectRatio: 2.5,
+        responsive: true
+  }
         });
 
         //window.onload = function() {
@@ -131,5 +147,5 @@
         // window.myPie = new Chart(ctx, config);
         //};
 
-    </script>
+</script>
 {% endblock content %}

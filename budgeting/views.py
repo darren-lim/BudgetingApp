@@ -1,39 +1,130 @@
+# use this for month amounts
+import datetime
 # very import import!! Allows us to return a rendered template.
 # Our views need to return an HttpResponse or exception.Render returns an HttpResponse in the background
 from django.shortcuts import render
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.views.generic import (
     ListView, DetailView, CreateView, UpdateView, DeleteView)
-from .models import Transaction
-from .forms import TransactionForm, UpdateForm
+from .models import Transaction, Total, History
+from .forms import TransactionForm, UpdateForm, TotalForm
+from django.db.models import Sum
 
 
 class HomeView(ListView):
-    model = Transaction
+    model = Total
     template_name = 'budgeting/home.html'
-    context_object_name = 'transactions'
-    # the "-" sign makes transactions order from newest to oldest (top-bottom order)
-    # ordering = model.objects.order_by('-date_posted')
-
-    # maybe get the specific models???
+    context_object_name = "total"
 
     def get_queryset(self):
+        if self.request.user.is_authenticated and self.model.objects.filter(author=self.request.user).exists():
+            # creating querysets for transactions and totals.
+            totalqueryset = self.model.objects.filter(
+                author=self.request.user)
+            transqueryset1 = Transaction.objects.filter(
+                author=self.request.user, in_history=False).order_by('-date_posted')
 
-        if self.request.user.is_authenticated:
-            labels = []
-            data = []
-            queryset = self.model.objects.filter(author=self.request.user)
-            queryset = queryset.filter(t_type__iexact='Withdraw')
-            for transaction in queryset:
-                labels.append(transaction.source)
-                amount = float(transaction.amount)
-                data.append(amount)
-            print(len(self.model.objects.filter(author=self.request.user)))
-            return {'transaction_list': self.model.objects.filter(author=self.request.user)[:5],
-                    'labels': labels,
-                    'data': data
+            # filters through every transaction not already in history and assigns them to a history object.
+            for transaction in transqueryset1:
+                year = transaction.date_posted.year
+                month = transaction.date_posted.month
+                # creating history queryset!
+                historyqueryset = History.objects.filter(
+                    author=self.request.user, year=year, month=month)
+                if transaction.t_type == 'Deposit':
+                    amount = transaction.amount
+                    if historyqueryset.first() is not None:
+                        amount_gained = historyqueryset.first().monthly_amount_gained + amount
+                    else:
+                        amount_gained = amount
+                    obj_tuple_t = Transaction.objects.update_or_create(id=transaction.id,
+                                                                       defaults={'month': month, 'year': year, 'in_history': True})
+                    obj_tuple_t[0].save()
+                    obj_tuple = History.objects.update_or_create(
+                        defaults={'month': month, 'year': year, 'author': self.request.user, 'monthly_amount_gained': amount_gained})
+                    obj_tuple[0].save()
+                elif transaction.t_type == "Withdrawal":
+                    amount = transaction.amount * -1
+                    if historyqueryset.first() is not None:
+                        amount_spent = historyqueryset.first().monthly_amount_spent + amount
+                    else:
+                        amount_spent = amount
+                    obj_tuple_t = Transaction.objects.update_or_create(id=transaction.id,
+                                                                       defaults={'month': month, 'year': year, 'in_history': True})
+                    obj_tuple_t[0].save()
+                    obj_tuple = History.objects.update_or_create(
+                        defaults={'month': month, 'year': year, 'author': self.request.user, 'monthly_amount_spent': amount_spent})
+                    obj_tuple[0].save()
+
+            # setting total amount to user's current balance when they first started using the app (initial_amount)
+            total_amount = totalqueryset.first().initial_amount
+
+            # checking to see if there any existing transactions
+            # if there are we have to update our totals database
+            # if not, we just return the total_amount
+            transqueryset2 = Transaction.objects.filter(
+                author=self.request.user).order_by('-date_posted')
+            transdict = transqueryset2.aggregate(Sum('amount'))
+
+            if transdict.get('amount__sum') is not None:
+                historyqueryset2 = History.objects.all()
+                historydict1 = historyqueryset2.aggregate(
+                    Sum('monthly_amount_gained'))
+                print(historydict1)
+                deposits = historydict1.get("monthly_amount_gained__sum")
+                historydict2 = historyqueryset2.aggregate(
+                    Sum('monthly_amount_spent'))
+                withdrawals = historydict2.get("monthly_amount_spent__sum")
+                print(deposits)
+                if deposits is not None and withdrawals is not None:
+                    total_amount += withdrawals
+                    total_amount += deposits
+
+                elif deposits is None and withdrawals is not None:
+                    total_amount += withdrawals
+
+                elif deposits is not None and withdrawals is None:
+                    total_amount += deposits
+                '''-----------------------------------------------------------------'''
+                # creating current year and month string
+                now = datetime.date.today()
+                current_year = now.year
+                current_month = now.month
+
+                currentqueryset = History.objects.filter(
+                    author=self.request.user, year=current_year, month=current_month)
+                if currentqueryset.first() is None:
+                    monthly_gain = None
+                    monthly_spent = None
+                else:
+                    monthly_gain = currentqueryset.first().monthly_amount_gained
+                    monthly_spent = currentqueryset.first().monthly_amount_spent
+                totalqueryset.update(
+                    total_amount=total_amount, total_amount_gained=deposits, total_amount_spent=withdrawals)
+                transqueryset2 = transqueryset2.filter()
+
+                labels = []
+                data = []
+                piequeryset = Transaction.objects.filter(
+                    author=self.request.user, year=current_year, month=current_month, t_type='Withdrawal')
+                for transaction in piequeryset:
+                    labels.append(transaction.source)
+                    amount = float(transaction.amount)
+                    data.append(amount)
+                print(len(self.model.objects.filter(author=self.request.user)))
+                return {'total': total_amount,
+                        'transaction_list': transqueryset2[:5],
+                        'monthly_gain': monthly_gain,
+                        'monthly_spent': monthly_spent,
+                        'labels': labels,
+                        'data': data}
+
+            return {'total': total_amount,
+                    'transaction_list': None
                     }
-        raise Exception("Unauthorized Access")
+        return {'total': None,
+                'transaction_list': None
+                }
 
 
 class TransListView(ListView):
@@ -116,6 +207,16 @@ class TransDeleteView(LoginRequiredMixin, DeleteView):
         if self.request.user == post.author:
             return True
         return False'''
+
+
+class TotalCreateView(LoginRequiredMixin, CreateView):
+    model = Total
+    form_class = TotalForm
+    template_name = 'budgeting/total_form.html'
+
+    def form_valid(self, form):  # sets the logged in user as the author of that transaction and sets the type when user clicks deposit/withdrawal
+        form.instance.author = self.request.user
+        return super().form_valid(form)
 
 
 def about(request):

@@ -1,6 +1,6 @@
 from django import forms
 from .fields import ListTextWidget
-from .models import Transaction
+from .models import Transaction, Total
 
 
 class TransactionForm(forms.ModelForm):
@@ -34,3 +34,10 @@ class UpdateForm(TransactionForm):
             'date_posted': forms.DateInput(format='%m/%d/%Y', attrs={'placeholder': 'e.g. 02/15/2020'}),
             'source': forms.TextInput(attrs={'placeholder': 'e.g. Part-time job, Utilities, Gas'})
         }
+
+
+class TotalForm(forms.ModelForm):
+
+    class Meta:
+        model = Total
+        fields = ['initial_amount']
