@@ -13,7 +13,7 @@ class HomeView(ListView):
     template_name = 'budgeting/home.html'
     context_object_name = 'transactions'
     # the "-" sign makes transactions order from newest to oldest (top-bottom order)
-    ordering = ['-date_posted']
+    # ordering = model.objects.order_by('-date_posted')
 
     # maybe get the specific models???
 
@@ -28,11 +28,12 @@ class HomeView(ListView):
                 labels.append(transaction.source)
                 amount = float(transaction.amount)
                 data.append(amount)
+            print(len(self.model.objects.filter(author=self.request.user)))
             return {'transaction_list': self.model.objects.filter(author=self.request.user)[:5],
                     'labels': labels,
                     'data': data
                     }
-        return None
+        raise Exception("Unauthorized Access")
 
 
 class TransListView(ListView):
@@ -40,7 +41,8 @@ class TransListView(ListView):
     template_name = 'budgeting/all_transactions.html'
     context_object_name = 'transactions'
     # the "-" sign makes transactions order from newest to oldest (top-bottom order)
-    ordering = ['-date_posted']
+    # ordering = model.objects.order_by('-date_posted')
+    paginate_by = 15
 
     # maybe get the specific models???
 
@@ -48,7 +50,7 @@ class TransListView(ListView):
         if self.request.user.is_authenticated:
             return self.model.objects.filter(author=self.request.user)
         else:
-            return None
+            raise Exception("Unauthorized Access, Please Log In")
 
 
 class TransDetailView(DetailView):
