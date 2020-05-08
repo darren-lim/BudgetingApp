@@ -42,17 +42,11 @@ class HomeView(ListView):
                         month=month, year=year, author=self.request.user, defaults={'monthly_amount_gained': amount_gained})
                     obj_tuple[0].save()
                 elif transaction.t_type == "Withdrawal":
-<<<<<<< HEAD
                     if historyqueryset.first() is not None:
                         amount_spent = historyqueryset.first().monthly_amount_spent + transaction.amount
                         obj_tuple = History.objects.update_or_create(
                             month=month, year=year, author=self.request.user, defaults={'monthly_amount_spent': amount_spent})
                         obj_tuple[0].save()
-=======
-                    amount = transaction.amount * -1
-                    if historyqueryset.first().monthly_amount_spent != None:
-                        amount_spent = historyqueryset.first().monthly_amount_spent + amount
->>>>>>> e66dfd3312f55e6c09d515172977d98cd3cfc792
                     else:
                         amount_spent = transaction.amount
                     obj_tuple = History.objects.update_or_create(
@@ -98,8 +92,8 @@ class HomeView(ListView):
                 currentqueryset = History.objects.filter(
                     author=self.request.user, year=current_year, month=current_month)
                 if currentqueryset.first() is None:
-                    monthly_gain = 0
-                    monthly_spent = 0
+                    monthly_gain = None
+                    monthly_spent = None
                 else:
                     monthly_gain = currentqueryset.first().monthly_amount_gained
                     monthly_spent = currentqueryset.first().monthly_amount_spent
@@ -114,6 +108,7 @@ class HomeView(ListView):
                     labels.append(transaction.source)
                     amount = float(transaction.amount)
                     data.append(amount)
+                print(len(self.model.objects.filter(author=self.request.user)))
                 return {'total': total_amount,
                         'transaction_list': transqueryset2[:5],
                         'monthly_gain': monthly_gain,
@@ -122,22 +117,8 @@ class HomeView(ListView):
                         'data': data}
 
             return {'total': total_amount,
-                    'transaction_list': None}
-        '''
-        if self.request.user.is_authenticated:
-            labels = []
-            data = []
-            queryset = self.model.objects.filter(author=self.request.user)
-            queryset = queryset.filter(t_type__iexact='Withdraw')
-            for transaction in queryset:
-                labels.append(transaction.source)
-                amount = float(transaction.amount)
-                data.append(amount)
-            return {'transaction_list': self.model.objects.filter(author=self.request.user)[:5],
-                    'labels': labels,
-                    'data': data
+                    'transaction_list': None
                     }
-        '''
         return {'total': None,
                 'transaction_list': None
                 }

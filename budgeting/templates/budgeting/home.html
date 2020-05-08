@@ -4,29 +4,34 @@
 
 {% if user.is_authenticated %}
 <!-- PLEASE CHANGE THE BACKGROUND COLOR OMG SO BAD -->
-<<<<<<< HEAD
-<div class="jumbotron text-center" style="background-color: #d3faff; max-height: 300px;">
+<div class="jumbotron text-center" style="background-color: #d3faff;">
   <div class="container">
-    <h1 class="display-4">
-      {% if total.total == None %}
-      <li class="list-group-item list-group-item-light"><a href="{% url 'total-create'%}">Enter
-          your current balance</a></li>
+    {% if total.total == None %}
+    <h1 class="display-4"><a href="{% url 'total-create'%}">Enter your current balance</a></h1>
+    {% else %}
+    <!-- <h1><a href="{% url 'total-create'%}"></a></h1> -->
+    <h4>Current Balance:</h4>
+    <h2 class="display-2">${{total.total}}</h2>
+    <hr class="my-2">
+    <div class="row" style="padding-top: 1%">
+      {% if total.monthly_gain == None %}
+      <h4 class="col-md-4">This Month Gain: 0</h4>
       {% else %}
-      <li class="list-group-item list-group-item-light"><a href="{% url 'total-create'%}">
-    </h1>
-    <hr class="my-1">
-    <h2 class="display-3">
-      Your Current Balance:
-      ${{total.total}}
-      <li class="list-group-item list-group-item-light"><a href="{% url 'total-create'%}">Amount gained this month:
-          {{total.monthly_gain}}</a></li>
-      <li class="list-group-item list-group-item-light"><a href="{% url 'total-create'%}">Amount spent this month:
-          {{total.monthly_spent}}</a></li>
+      <h4 class="col-md-4">This Month Gain: {{total.monthly_gain}}</h4>
       {% endif %}
-    </h2>
+      {% if total.monthly_spent == None %}
+      <h4 class="col-md-8">This Month Spent: 0</h4>
+      {% else %}
+      <h4 class="col-md-8">This Month Spent: {{total.monthly_spent}}</h4>
+      {% endif %}
+    </div>
+    <!-- <a href="{% url 'total-create'%}">Amount gained this month: {{total.monthly_gain}}</a></p> -->
+    <!-- <a href="{% url 'total-create'%}">Amount spent this month: {{total.monthly_spent}}</a> -->
+    {% endif %}
   </div>
 </div>
-{% if total.transaction_list|length == 0 %}
+{% if total.transaction_list|length == 0 or total.transaction_list == None %}
+{% if total.total != None %}
 <div class="jumbotron text-center" style="background-color: #d3faff; margin-left: 15%; margin-right: 15%; padding: 5%">
   <h4 style="padding-bottom: 5%">
     Start By Creating a Transaction!
@@ -35,15 +40,16 @@
     <li class="list-group-item list-group-item-light"><a
         href="{% url 'transaction-create' parameter='Deposit' %}">Deposit</a></li>
     <li class="list-group-item list-group-item-light"><a
-        href="{% url 'transaction-create' parameter='Withdrawal' %}">Withdraw</a></li>
+        href="{% url 'transaction-create' parameter='Withdraw' %}">Withdraw</a></li>
   </ul>
 </div>
+{% endif %}
 {% else %}
 <div class="text-center">
   <h3 class="display-4">
     Spending
   </h3>
-  {% if total.data|length == 0 %}
+  {% if total.data|length == 0 or total.data == None %}
   <div style="margin-left: 15%; margin-right: 15%; padding: 3%">
     <h4 class="card" style="background-color: #d3ffdf; padding: 3%">
       You have not spent any money (:
@@ -65,131 +71,58 @@
     {% for transaction in total.transaction_list %}
     <article class="media content-section">
       <div class="media-body">
+        {% if transaction.t_type  == 'Withdrawal' %}
         <div class="article-metadata">
-          {% if transaction.t_type  == 'Withdraw' %}
           <a class="mr-2" href="{% url 'transaction-detail' transaction.id %}">{{ transaction.t_type}} for
             {{transaction.source}}</a>
-=======
-    <div class="jumbotron text-center" style="background-color: #d3faff;">
-      <div class="container">
-          {% if total.total == None %}
-            <h1 class="display-4"><a href="{% url 'total-create'%}">Enter your current balance</a></h1>
->>>>>>> e66dfd3312f55e6c09d515172977d98cd3cfc792
-          {% else %}
-              <!-- <h1><a href="{% url 'total-create'%}"></a></h1> -->
-              <h4>Current Balance:</h4>
-              <h2 class="display-2">${{total.total}}</h2>
-              <hr class="my-2">
-              <div class="row" style="padding-top: 1%">
-                {% if total.monthly_gain == None %}
-                    <h4 class="col-md-4">This Month Gain: 0</h4>
-                {% else %}
-                    <h4 class="col-md-4">This Month Gain: {{total.monthly_gain}}</h4>
-                {% endif %}
-                {% if total.monthly_spent == None %}
-                    <h4 class="col-md-8">This Month Spent: 0</h4>
-                {% else %}
-                    <h4 class="col-md-8">This Month Spent: {{total.monthly_spent}}</h4>
-                {% endif %}
-              </div>
-              <!-- <a href="{% url 'total-create'%}">Amount gained this month: {{total.monthly_gain}}</a></p> -->
-              <!-- <a href="{% url 'total-create'%}">Amount spent this month: {{total.monthly_spent}}</a> -->
-          {% endif %}
+          <small class="text-muted">{{ transaction.date_posted|date:"F d, Y"}}</small>
+        </div>
+        <h2 class="article-title" style="color:red">
+          - ${{ transaction.amount }}
+        </h2>
+        {% else %}
+        <div class="article-metadata">
+          <a class="mr-2" href="{% url 'transaction-detail' transaction.id %}">{{ transaction.t_type}} from
+            {{transaction.source}}</a>
+          <small class="text-muted">{{ transaction.date_posted|date:"F d, Y"}}</small>
+        </div>
+        <h2 class="article-title" style="color:limegreen">
+          + ${{ transaction.amount }}
+        </h2>
+        {% endif %}
       </div>
+    </article>
+    {% endfor %}
+  </div>
+  <div class="col-md-4">
+    <div class="content-section">
+      <h3>Create A New Transaction</h3>
+      <p class='text-muted'>Add new transactions here.</p>
+      <ul class="list-group">
+        <li class="list-group-item list-group-item-light"><a
+            href="{% url 'transaction-create' parameter='Deposit' %}">Deposit</a></li>
+        <li class="list-group-item list-group-item-light"><a
+            href="{% url 'transaction-create' parameter='Withdrawal' %}">Withdraw</a></li>
+      </ul>
     </div>
-    {% if total.transaction_list|length == 0 or total.transaction_list == None %}
-        {% if total.total != None %}
-            <div class="jumbotron text-center" style="background-color: #d3faff; margin-left: 15%; margin-right: 15%; padding: 5%">
-              <h4 style="padding-bottom: 5%">
-                Start By Creating a Transaction!
-              </h4>
-              <ul class="list-group">
-                <li class="list-group-item list-group-item-light"><a
-                    href="{% url 'transaction-create' parameter='Deposit' %}">Deposit</a></li>
-                <li class="list-group-item list-group-item-light"><a
-                    href="{% url 'transaction-create' parameter='Withdraw' %}">Withdraw</a></li>
-              </ul>
-            </div>
-        {% endif %}
-    {% else %}
-        <div class="text-center">
-          <h3 class="display-4">
-            Spending
-          </h3>
-          {% if total.data|length == 0 or total.data == None %}
-          <div style="margin-left: 15%; margin-right: 15%; padding: 3%">
-            <h4 class="card" style="background-color: #d3ffdf; padding: 3%">
-              You have not spent any money (:
-            </h4>
-          </div>
-          {% else %}
-          <div class="container" style="padding-bottom:3%">
-            <canvas id="pie-chart"></canvas>
-          </div>
-        {% endif %}
-        </div>
-        <div class="row">
-          <div class="col-md-8">
-            <div class="text-center">
-              <h3 class="display-4">
-                5 Recent Transactions
-              </h3>
-            </div>
-            {% for transaction in total.transaction_list %}
-            <article class="media content-section">
-              <div class="media-body">
-                {% if transaction.t_type  == 'Withdrawal' %}
-                  <div class="article-metadata">
-                    <a class="mr-2" href="{% url 'transaction-detail' transaction.id %}">{{ transaction.t_type}} for
-                      {{transaction.source}}</a>
-                    <small class="text-muted">{{ transaction.date_posted|date:"F d, Y"}}</small>
-                  </div>
-                  <h2 class="article-title" style="color:red">
-                    - ${{ transaction.amount }}
-                  </h2>
-                {% else %}
-                  <div class="article-metadata">
-                    <a class="mr-2" href="{% url 'transaction-detail' transaction.id %}">{{ transaction.t_type}} from
-                      {{transaction.source}}</a>
-                    <small class="text-muted">{{ transaction.date_posted|date:"F d, Y"}}</small>
-                  </div>
-                  <h2 class="article-title" style="color:limegreen">
-                    + ${{ transaction.amount }}
-                  </h2>
-                {% endif %}
-              </div>
-            </article>
-            {% endfor %}
-          </div>
-          <div class="col-md-4">
-            <div class="content-section">
-              <h3>Create A New Transaction</h3>
-              <p class='text-muted'>Add new transactions here.</p>
-              <ul class="list-group">
-                <li class="list-group-item list-group-item-light"><a
-                    href="{% url 'transaction-create' parameter='Deposit' %}">Deposit</a></li>
-                <li class="list-group-item list-group-item-light"><a
-                    href="{% url 'transaction-create' parameter='Withdrawal' %}">Withdraw</a></li>
-              </ul>
-            </div>
-          </div>
-        </div>
-    {% endif %}
+  </div>
+</div>
+{% endif %}
 {% else %}
-    <div class="row">
-      <div class="col-md-8">
-        <article class="media content-section">
-          <div class="media-body">
-            <div class="article-metadata">
-              <h2>
-                Welcome to Treat Yo Self, a Budgeting Website for your Poor Ass Needs
-              </h2>
-            </div>
-            <p>Please Register or Log In to start.</p>
-          </div>
-        </article>
+<div class="row">
+  <div class="col-md-8">
+    <article class="media content-section">
+      <div class="media-body">
+        <div class="article-metadata">
+          <h2>
+            Welcome to Treat Yo Self, a Budgeting Website for your Poor Ass Needs
+          </h2>
+        </div>
+        <p>Please Register or Log In to start.</p>
       </div>
-    </div>
+    </article>
+  </div>
+</div>
 {% endif %}
 <script>
   const colorScale = d3.interpolateRainbow;
