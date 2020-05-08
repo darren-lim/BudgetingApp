@@ -32,17 +32,16 @@ class HomeView(ListView):
                 historyqueryset = History.objects.filter(
                     author=self.request.user, year=year, month=month)
                 if transaction.t_type == 'Deposit':
-                    if historyqueryset.first() is not None:
+                    if historyqueryset.first() is not None and historyqueryset.first().monthly_amount_gained is not None:
                         amount_gained = historyqueryset.first().monthly_amount_gained + \
                             transaction.amount
-
                     else:
                         amount_gained = transaction.amount
                     obj_tuple = History.objects.update_or_create(
                         month=month, year=year, author=self.request.user, defaults={'monthly_amount_gained': amount_gained})
                     obj_tuple[0].save()
                 elif transaction.t_type == "Withdrawal":
-                    if historyqueryset.first() is not None:
+                    if historyqueryset.first() is not None and historyqueryset.first().monthly_amount_spent is not None:
                         amount_spent = historyqueryset.first().monthly_amount_spent + transaction.amount
                         obj_tuple = History.objects.update_or_create(
                             month=month, year=year, author=self.request.user, defaults={'monthly_amount_spent': amount_spent})
@@ -108,7 +107,6 @@ class HomeView(ListView):
                     labels.append(transaction.source)
                     amount = float(transaction.amount)
                     data.append(amount)
-                print(len(self.model.objects.filter(author=self.request.user)))
                 return {'total': total_amount,
                         'transaction_list': transqueryset2[:5],
                         'monthly_gain': monthly_gain,
