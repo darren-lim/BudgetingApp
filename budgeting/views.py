@@ -32,29 +32,29 @@ class HomeView(ListView):
                 historyqueryset = History.objects.filter(
                     author=self.request.user, year=year, month=month)
                 if transaction.t_type == 'Deposit':
-                    amount = transaction.amount
                     if historyqueryset.first() is not None:
-                        amount_gained = historyqueryset.first().monthly_amount_gained + amount
+                        amount_gained = historyqueryset.first().monthly_amount_gained + \
+                            transaction.amount
+
                     else:
-                        amount_gained = amount
-                    obj_tuple_t = Transaction.objects.update_or_create(id=transaction.id,
-                                                                       defaults={'month': month, 'year': year, 'in_history': True})
-                    obj_tuple_t[0].save()
+                        amount_gained = transaction.amount
                     obj_tuple = History.objects.update_or_create(
-                        defaults={'month': month, 'year': year, 'author': self.request.user, 'monthly_amount_gained': amount_gained})
+                        month=month, year=year, author=self.request.user, defaults={'monthly_amount_gained': amount_gained})
                     obj_tuple[0].save()
                 elif transaction.t_type == "Withdrawal":
-                    amount = transaction.amount * -1
                     if historyqueryset.first() is not None:
-                        amount_spent = historyqueryset.first().monthly_amount_spent + amount
+                        amount_spent = historyqueryset.first().monthly_amount_spent + transaction.amount
+                        obj_tuple = History.objects.update_or_create(
+                            month=month, year=year, author=self.request.user, defaults={'monthly_amount_spent': amount_spent})
+                        obj_tuple[0].save()
                     else:
-                        amount_spent = amount
-                    obj_tuple_t = Transaction.objects.update_or_create(id=transaction.id,
-                                                                       defaults={'month': month, 'year': year, 'in_history': True})
-                    obj_tuple_t[0].save()
+                        amount_spent = transaction.amount
                     obj_tuple = History.objects.update_or_create(
-                        defaults={'month': month, 'year': year, 'author': self.request.user, 'monthly_amount_spent': amount_spent})
+                        month=month, year=year, author=self.request.user, defaults={'monthly_amount_spent': amount_spent})
                     obj_tuple[0].save()
+                obj_tuple_t = Transaction.objects.update_or_create(id=transaction.id,
+                                                                   defaults={'month': month, 'year': year, 'in_history': True})
+                obj_tuple_t[0].save()
 
             # setting total amount to user's current balance when they first started using the app (initial_amount)
             total_amount = totalqueryset.first().initial_amount
@@ -70,18 +70,16 @@ class HomeView(ListView):
                 historyqueryset2 = History.objects.all()
                 historydict1 = historyqueryset2.aggregate(
                     Sum('monthly_amount_gained'))
-                print(historydict1)
                 deposits = historydict1.get("monthly_amount_gained__sum")
                 historydict2 = historyqueryset2.aggregate(
                     Sum('monthly_amount_spent'))
                 withdrawals = historydict2.get("monthly_amount_spent__sum")
-                print(deposits)
                 if deposits is not None and withdrawals is not None:
-                    total_amount += withdrawals
+                    total_amount -= withdrawals
                     total_amount += deposits
 
                 elif deposits is None and withdrawals is not None:
-                    total_amount += withdrawals
+                    total_amount -= withdrawals
 
                 elif deposits is not None and withdrawals is None:
                     total_amount += deposits
@@ -101,7 +99,6 @@ class HomeView(ListView):
                     monthly_spent = currentqueryset.first().monthly_amount_spent
                 totalqueryset.update(
                     total_amount=total_amount, total_amount_gained=deposits, total_amount_spent=withdrawals)
-                transqueryset2 = transqueryset2.filter()
 
                 labels = []
                 data = []
@@ -201,6 +198,45 @@ class TransUpdateView(LoginRequiredMixin, UpdateView):
 class TransDeleteView(LoginRequiredMixin, DeleteView):
     model = Transaction
     success_url = '/'  # goes to the homepage with all transactions.
+    def delete(self, *args, **kwargs):
+
+        totalqueryset = Total.objects.filter(
+            author=self.request.user)
+
+        transaction = self.get_object()
+        year = transaction.date_posted.year
+        month = transaction.date_posted.month
+        # creating history queryset!
+        historyqueryset = History.objects.filter(
+            author=self.request.user, year=year, month=month)
+        if transaction.t_type == 'Deposit':
+            total_updated_amount = totalqueryset.first().total_amount - transaction.amount
+            total_updated_gained_amount = totalqueryset.first().total_amount_gained - \
+                transaction.amount
+
+            updated_amount = historyqueryset.first().monthly_amount_gained - \
+                transaction.amount
+            obj_tuple_total = Total.objects.update_or_create(author=self.request.user, defaults={'total_amount': total_updated_amount,
+                                                                                                 'total_amount_gained': total_updated_gained_amount})
+            obj_tuple_total[0].save()
+            obj_tuple = History.objects.update_or_create(month=month, year=year, author=self.request.user,
+                                                         defaults={'monthly_amount_gained': updated_amount})
+            obj_tuple[0].save()
+        elif transaction.t_type == "Withdrawal":
+            total_updated_amount = totalqueryset.first().total_amount + transaction.amount
+            total_updated_spent_amount = totalqueryset.first().total_amount_spent - \
+                transaction.amount
+
+            updated_amount = historyqueryset.first().monthly_amount_spent - \
+                transaction.amount
+            obj_tuple_total = Total.objects.update_or_create(author=self.request.user, defaults={'total_amount': total_updated_amount,
+                                                                                                 'total_amount_spent': total_updated_spent_amount})
+            obj_tuple_total[0].save()
+            obj_tuple = History.objects.update_or_create(month=month, year=year, author=self.request.user,
+                                                         defaults={'monthly_amount_spent': total_updated_spent_amount})
+            obj_tuple[0].save()
+
+        return super(TransDeleteView, self).delete(*args, **kwargs)
 
     '''def test_func(self): # prevents any other users from updating but this shouldn't happen in the first place because transactions are private (more for smth like twitter)
         post = self.get_object()

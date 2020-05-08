@@ -54,7 +54,7 @@ class History(models.Model):
         max_digits=10, decimal_places=2, null=True)
     monthly_amount_spent = models.DecimalField(
         max_digits=10, decimal_places=2, null=True)
-    author = models.OneToOneField(User, on_delete=models.CASCADE, null=True)
+    author = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
 
     def __str__(self):
         return str(self.author)
