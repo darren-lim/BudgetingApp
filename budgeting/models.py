@@ -7,14 +7,17 @@ class Transaction(models.Model):
     t_type = models.CharField("Deposit/Withdrawal", max_length=15, null=True)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     source = models.CharField(
-        "Source", max_length=30)
-    date_posted = models.DateField("Transaction Date",
-                                   auto_now_add=False, auto_now=False, blank=False, null=True)
+        "Source (Case Sensitive)", max_length=30)
     notes = models.TextField("Additional Information", blank=True, null=True)
+    date_posted = models.DateField("Transaction Date (mm/dd/yyyy)",
+                                   auto_now_add=False, auto_now=False, blank=False, null=True)
     author = models.ForeignKey(User, on_delete=models.CASCADE)
     in_history = models.BooleanField(default=False)
     year = models.IntegerField(null=True)
     month = models.IntegerField(null=True)
+
+    class Meta:
+        ordering = ['-date_posted']
 
     def __str__(self):
         return self.source
