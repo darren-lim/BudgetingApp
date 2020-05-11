@@ -7,11 +7,11 @@
 <div class="jumbotron container-fluid text-center" style="padding-top: 2%;padding-bottom: 2%;">
 
     {% if total.total == None %}
-      <h1 class="display-4"><a href="{% url 'total-create'%}">Enter your current balance</a></h1>
+      <h1 class="display-3"><a href="{% url 'total-create'%}">Enter your current balance</a></h1>
     {% else %}
     <!-- <h1><a href="{% url 'total-create'%}"></a></h1> -->
     <h3>Current Balance:</h3>
-    <h3 class="display-2">${{total.total}}</h3>
+    <h3 class="display-2" style="color:black">${{total.total}}</h3>
     <hr class="my-2">
     <div class="row" style="padding-top: 1%">
       {% if total.monthly_gain == None %}
