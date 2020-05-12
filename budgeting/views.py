@@ -99,26 +99,67 @@ class HomeView(ListView):
                 totalqueryset.update(
                     total_amount=total_amount, total_amount_gained=deposits, total_amount_spent=withdrawals)
 
-                labels = []
-                data = []
+                ExpenseLabels = []
+                ExpenseData = []
+                IncomeLabels = []
+                IncomeData = []
+
+                expenses = dict()
+                income = dict()
+
                 piequeryset = Transaction.objects.filter(
-                    author=self.request.user, year=current_year, month=current_month, t_type='Withdrawal')
+                    author=self.request.user, year=current_year, month=current_month)
                 for transaction in piequeryset:
-                    labels.append(transaction.source)
-                    amount = float(transaction.amount)
-                    data.append(amount)
+                    if transaction.t_type == 'Withdrawal':
+                        if transaction.source in expenses:
+                            expenses[transaction.source] += float(transaction.amount)
+                        else:
+                            expenses[transaction.source] = float(transaction.amount)
+                    elif transaction.t_type == 'Deposit':
+                        if transaction.source in income:
+                            income[transaction.source] += float(transaction.amount)
+                        else:
+                            income[transaction.source] = float(transaction.amount)
+
+                for key, value in expenses.items():
+                    ExpenseLabels.append(key)
+                    ExpenseData.append(value)
+
+                for key, value in income.items():
+                    IncomeLabels.append(key)
+                    IncomeData.append(value)
+
+                if monthly_gain is None:
+                    monthly_gain = 0
+                if monthly_spent is None:
+                    monthly_spent = 0
                 return {'total': total_amount,
                         'transaction_list': transqueryset2[:5],
                         'monthly_gain': monthly_gain,
                         'monthly_spent': monthly_spent,
-                        'labels': labels,
-                        'data': data}
+                        'expense_labels': ExpenseLabels,
+                        'expense_data': ExpenseData,
+                        'income_labels': IncomeLabels,
+                        'income_data': IncomeData
+                        }
 
             return {'total': total_amount,
-                    'transaction_list': None
+                    'transaction_list': [],
+                    'monthly_gain': 0,
+                    'monthly_spent': 0,
+                    'expense_labels': [],
+                    'expense_data': [],
+                    'income_labels': [],
+                    'income_data': []
                     }
         return {'total': None,
-                'transaction_list': None
+                'transaction_list': [],
+                'monthly_gain': 0,
+                'monthly_spent': 0,
+                'expense_labels': [],
+                'expense_data': [],
+                'income_labels': [],
+                'income_data': []
                 }
 
 

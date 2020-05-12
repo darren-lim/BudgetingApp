@@ -13,8 +13,9 @@
     <h3>Current Balance:</h3>
     <h3 class="display-2" style="color:black">${{total.total}}</h3>
     <hr class="my-2">
+    <!--
     <div class="row" style="padding-top: 1%">
-      {% if total.monthly_gain == None %}
+      {% if total.monthly_gain == 0 %}
         <div class="col text-center">
           <h4>This Month Gained:</h4>
           <h1 style="color:limegreen">+ $0.00</h1>
@@ -37,41 +38,57 @@
           </div>
       {% endif %}
     </div>
+    -->
     <!-- <a href="{% url 'total-create'%}">Amount gained this month: {{total.monthly_gain}}</a></p> -->
     <!-- <a href="{% url 'total-create'%}">Amount spent this month: {{total.monthly_spent}}</a> -->
     {% endif %}
 
 </div>
 {% if total.transaction_list|length == 0 or total.transaction_list == None %}
-{% if total.total != None %}
-<div class="jumbotron text-center" style="margin-left: 15%; margin-right: 15%; padding: 5%">
-  <h4 style="padding-bottom: 5%">
-    Start By Creating a Transaction!
-  </h4>
-  <ul class="list-group">
-    <li class="list-group-item list-group-item-light"><a
-        href="{% url 'transaction-create' parameter='Deposit' %}">Deposit</a></li>
-    <li class="list-group-item list-group-item-light"><a
-        href="{% url 'transaction-create' parameter='Withdraw' %}">Withdraw</a></li>
-  </ul>
-</div>
-{% endif %}
+    {% if total.total != None %}
+        <div class="jumbotron text-center" style="margin-left: 15%; margin-right: 15%; padding: 5%">
+          <h4 style="padding-bottom: 5%">
+            Start By Creating a Transaction!
+          </h4>
+          <ul class="list-group">
+            <li class="list-group-item list-group-item-light"><a
+                href="{% url 'transaction-create' parameter='Deposit' %}">Deposit</a></li>
+            <li class="list-group-item list-group-item-light"><a
+                href="{% url 'transaction-create' parameter='Withdrawal' %}">Withdraw</a></li>
+          </ul>
+        </div>
+    {% endif %}
 {% else %}
+
 <div class="text-center">
-  <h3 class="display-4">
-    Spending
-  </h3>
-  {% if total.data|length == 0 or total.data == None %}
+  <!--
+  {% if total.expense_data|length == 0 or total.expense_data == None %}
   <div style="margin-left: 15%; margin-right: 15%; padding: 3%">
     <h4 class="card" style="background-color: #d3ffdf; padding: 3%">
       You have not spent any money (:
     </h4>
   </div>
   {% else %}
-  <div class="container" style="padding-bottom:3%">
-    <canvas id="pie-chart"></canvas>
-  </div>
   {% endif %}
+  -->
+  <div class="container">
+    <table style="margin-left:auto;margin-right:auto;">
+        <tr>
+            <td>
+                <canvas id="expense-pie-chart" width="350" height="350"></canvas>
+            </td>
+            <td style="padding-right: 30px; max-width: 5%">
+                <div id="expense-legends" style="text-align: left; text-wrap: normal"></div>
+            </td>
+            <td>
+                <canvas id="income-pie-chart" width="350" height="350"></canvas>
+            </td>
+            <td style="padding-right: 30px; max-width: 5%">
+                <div id="income-legends" style="text-align: left; text-wrap: normal"></div>
+            </td>
+        </tr>
+    </table>
+  </div>
 </div>
 <div class="row">
   <div class="col-md-8">
@@ -83,25 +100,24 @@
     {% for transaction in total.transaction_list %}
     <article class="media content-section">
       <div class="media-body">
-        {% if transaction.t_type  == 'Withdrawal' %}
-        <div class="article-metadata">
-          <a class="mr-2" href="{% url 'transaction-detail' transaction.id %}">{{ transaction.t_type}} for
-            {{transaction.source}}</a>
-          <small class="text-muted">{{ transaction.date_posted|date:"F d, Y"}}</small>
+        <div id="HASH" class="article-metadata">
+            <small class="text-muted">{{ transaction.date_posted|date:"F d, Y"}}</small>
+            <span>{{transaction.t_type}}</span>
         </div>
-        <h2 class="article-title" style="color:red">
-          - ${{ transaction.amount }}
-        </h2>
-        {% else %}
-        <div class="article-metadata">
-          <a class="mr-2" href="{% url 'transaction-detail' transaction.id %}">{{ transaction.t_type}} from
-            {{transaction.source}}</a>
-          <small class="text-muted">{{ transaction.date_posted|date:"F d, Y"}}</small>
+        <div id="HASH" class="article-title">
+            <h2>
+                <a class="mr-2" href="{% url 'transaction-detail' transaction.id %}">{{transaction.source}}</a>
+            </h2>
+            {% if transaction.t_type  == 'Withdrawal' %}
+                <h2 style="color: red">
+                    - ${{ transaction.amount }}
+                </h2>
+            {% else %}
+                <h2 style="color:limegreen">
+                    + ${{ transaction.amount }}
+                </h2>
+            {% endif %}
         </div>
-        <h2 class="article-title" style="color:limegreen">
-          + ${{ transaction.amount }}
-        </h2>
-        {% endif %}
       </div>
     </article>
     {% endfor %}
@@ -137,40 +153,155 @@
 </div>
 {% endif %}
 <script>
-  const colorScale = d3.interpolateSinebow;
-  let dataLength = {{ total.data| length }};
-  const colorRangeInfo = {
-    colorStart: 0,
-    colorEnd: 1,
-    useEndAsStart: false,
-  };
-  let COLORS = interpolateColors(dataLength, colorScale, colorRangeInfo);
+    Chart.defaults.global.legend.labels.usePointStyle = true;
+    const colorScaleExpense = d3.interpolateSinebow;
+    let dataLengthExpense = {{ total.expense_data| length }};
+    const colorRangeInfo = {
+        colorStart: 0,
+        colorEnd: 1,
+        useEndAsStart: false,
+    };
+    let COLORSEXPENSE = interpolateColors(dataLengthExpense, colorScaleExpense, colorRangeInfo);
 
-  let ctx = document.getElementById('pie-chart').getContext('2d');
-  let pieChart = new Chart(ctx, {
-    type: 'pie',
-    data: {
-      datasets: [{
-        data: {{ total.data | safe }},
-    //data:[100, 200, 500, 1000],
-    backgroundColor: COLORS,
-    label: 'Money'
-  }],
-    labels: {{ total.labels | safe }},
-  //labels:['Dinner', 'Gas', 'PC', 'House'],
-  borderWidth: 1,
+    const colorScaleIncome = d3.interpolateRainbow;
+    let dataLengthIncome = {{ total.income_data| length }};
+    const colorRangeInfo2 = {
+        colorStart: 0,
+        colorEnd: 1,
+        useEndAsStart: false,
+    };
+    let COLORSINCOME = interpolateColors(dataLengthIncome, colorScaleIncome, colorRangeInfo2);
+
+    /**
+     * Expense Chart
+     */
+
+    let ctx = document.getElementById('expense-pie-chart').getContext('2d');
+    let pieChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          datasets: [{
+            data: {{ total.expense_data| safe }},
+            backgroundColor: COLORSEXPENSE,
+            label: 'Money'
+          }],
+          labels: {{ total.expense_labels | safe }},
+          borderWidth: 1,
           },
-  options: {
-    maintainAspectRatio: true,
-      aspectRatio: 2.5,
-        responsive: true
-  }
-        });
+        options: {
+          legend: {
+            display: false
+          },
+          maintainAspectRatio: false,
+          aspectRatio: 2.5,
+          cutoutPercentage: 70,
+          responsive: true,
+          title: "Expenses",
+          amount: "${{total.monthly_spent}}",
+          legendCallback: function(chart) {
+              let text = [];
+              text.push('<ul>');
+              for (let i = 0; i < {{ total.expense_labels | length }}; i++) {
+                  text.push('<li style="color:' + chart.data.datasets[0].backgroundColor[i] + '">');
+                  text.push('<span style="color: black; font-size: 14pt">' + chart.data.labels[i] + '</span>');
+                  text.push('</li>');
+              }
+              text.push('</ul>');
+              return text.join("");
+          }
+        }
+    });
 
-        //window.onload = function() {
-        //  let ctx = document.getElementById('pie-chart').getContext('2d');
-        // window.myPie = new Chart(ctx, config);
-        //};
+    document.getElementById('expense-legends').innerHTML = pieChart.generateLegend();
+
+    /**
+     * Income Chart
+     */
+
+    let ctx2 = document.getElementById('income-pie-chart').getContext('2d');
+    let pieChart2 = new Chart(ctx2, {
+        type: 'doughnut',
+        data: {
+          datasets: [{
+            data: {{ total.income_data| safe }},
+            backgroundColor: COLORSINCOME,
+            label: 'Money'
+          }],
+          labels: {{ total.income_labels | safe }},
+          borderWidth: 1,
+          },
+        options: {
+          legend: {
+            display: false
+          },
+          maintainAspectRatio: false,
+          aspectRatio: 2.5,
+          cutoutPercentage: 70,
+          responsive: true,
+          title: "Income",
+          amount: "${{total.monthly_gain}}",
+          legendCallback: function(chart) {
+            let text = [];
+            text.push('<ul>');
+            for (let i = 0; i < {{ total.income_labels | length }}; i++) {
+                text.push('<li style="color:' + chart.data.datasets[0].backgroundColor[i] + '">');
+                text.push('<span style="color: black; font-size: 14pt"">' + chart.data.labels[i] + '</span>');
+                text.push('</li>');
+            }
+            text.push('</ul>');
+            return text.join("");
+          }
+        }
+    });
+    document.getElementById('income-legends').innerHTML = pieChart2.generateLegend();
+
+    Chart.pluginService.register({
+      beforeDraw: function(chart) {
+        let width = chart.chart.width,
+            height = chart.chart.height,
+            ctx = chart.chart.ctx;
+
+        ctx.restore();
+        let fontSize = (height / 250).toFixed(2);
+        ctx.font = fontSize + "em sans-serif";
+        ctx.textBaseline = "bottom";
+
+        let title = chart.config.options.title,
+          textX = Math.round((width - ctx.measureText(title).width) / 2),
+          textY = height / 2 - 25;
+        ctx.fillText(title, textX, textY);
+
+        let font2Size = (height / 120).toFixed(2);
+        ctx.font = font2Size + "em sans-serif";
+        ctx.textBaseline = "top";
+
+        let amount = chart.config.options.amount,
+          text2X = Math.round((width - ctx.measureText(amount).width) / 2),
+          text2Y = height / 2 - 20;
+
+        ctx.fillText(amount, text2X, text2Y);
+
+        ctx.save();
+      },
+
+      afterDraw: function(chart) {
+        if (chart.data.datasets.length === 0) {
+            // No data is present
+          let ctx = chart.chart.ctx;
+          let width = chart.chart.width;
+          let height = chart.chart.height;
+          chart.clear();
+
+          ctx.save();
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.font = "16px normal 'Helvetica Nueue'";
+          ctx.fillText('No data to display', width / 2, height / 2);
+          ctx.restore();
+        }
+      }
+    });
+
 
 </script>
 {% endblock content %}

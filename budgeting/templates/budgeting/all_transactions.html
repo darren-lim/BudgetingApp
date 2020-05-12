@@ -18,18 +18,24 @@
                     {% for transaction in transactions %}
                     <article class="media content-section">
                       <div class="media-body">
-                        <div class="article-metadata">
-                          {% if transaction.t_type  == 'Withdraw' %}
-                            <a class="mr-2" href="{% url 'transaction-detail' transaction.id %}">{{ transaction.t_type}} for {{transaction.source}}</a>
-                          {% else %}
-                            <a class="mr-2" href="{% url 'transaction-detail' transaction.id %}">{{ transaction.t_type}} from {{transaction.source}}</a>
-                          {% endif %}
-                          <small class="text-muted">{{ transaction.date_posted|date:"F d, Y"}}</small>
-                          <small class="text-muted">{{ transactions.data }}</small>
+                        <div id="HASH" class="article-metadata">
+                            <small class="text-muted">{{ transaction.date_posted|date:"F d, Y"}}</small>
+                            <span>{{transaction.t_type}}</span>
                         </div>
-                        <h2>
-                          <a class="article-title" href="{% url 'transaction-detail' transaction.id %}">${{ transaction.amount }}</a>
-                        </h2>
+                        <div id="HASH" class="article-title">
+                            <h2>
+                                <a class="mr-2" href="{% url 'transaction-detail' transaction.id %}">{{transaction.source}}</a>
+                            </h2>
+                            {% if transaction.t_type  == 'Withdrawal' %}
+                                <h2 style="color: red">
+                                    - ${{ transaction.amount }}
+                                </h2>
+                            {% else %}
+                                <h2 style="color:limegreen">
+                                    + ${{ transaction.amount }}
+                                </h2>
+                            {% endif %}
+                        </div>
                       </div>
                     </article>
                     {% endfor %}
