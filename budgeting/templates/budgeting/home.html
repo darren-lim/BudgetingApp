@@ -6,7 +6,7 @@
 <!-- PLEASE CHANGE THE BACKGROUND COLOR OMG SO BAD -->
 <div class="jumbotron container-fluid text-center" style="padding-top: 2%;padding-bottom: 2%;">
 
-    {% if total.total == None or total.total|length == 0 %}
+    {% if total.total == None %}
       <h1 class="display-3"><a href="{% url 'total-create'%}">Enter your current balance</a></h1>
     {% else %}
     <!-- <h1><a href="{% url 'total-create'%}"></a></h1> -->
@@ -45,19 +45,19 @@
 
 </div>
 {% if total.transaction_list|length == 0 or total.transaction_list == None %}
-{% if total.total != None %}
-<div class="jumbotron text-center" style="margin-left: 15%; margin-right: 15%; padding: 5%">
-  <h4 style="padding-bottom: 5%">
-    Start By Creating a Transaction!
-  </h4>
-  <ul class="list-group">
-    <li class="list-group-item list-group-item-light"><a
-        href="{% url 'transaction-create' parameter='Deposit' %}">Deposit</a></li>
-    <li class="list-group-item list-group-item-light"><a
-        href="{% url 'transaction-create' parameter='Withdrawal' %}">Withdraw</a></li>
-  </ul>
-</div>
-{% endif %}
+    {% if total.total != None %}
+        <div class="jumbotron text-center" style="margin-left: 15%; margin-right: 15%; padding: 5%">
+          <h4 style="padding-bottom: 5%">
+            Start By Creating a Transaction!
+          </h4>
+          <ul class="list-group">
+            <li class="list-group-item list-group-item-light"><a
+                href="{% url 'transaction-create' parameter='Deposit' %}">Deposit</a></li>
+            <li class="list-group-item list-group-item-light"><a
+                href="{% url 'transaction-create' parameter='Withdrawal' %}">Withdraw</a></li>
+          </ul>
+        </div>
+    {% endif %}
 {% else %}
 
 <div class="text-center">
@@ -74,11 +74,17 @@
   <div class="container">
     <table style="margin-left:auto;margin-right:auto;">
         <tr>
-            <td style="padding-right: 100px"><canvas id="expense-pie-chart" width="380" height="380"></canvas>
-                <div id="my-legend-con" class="legend-con"></div>
+            <td>
+                <canvas id="expense-pie-chart" width="350" height="350"></canvas>
             </td>
-            <td><canvas id="income-pie-chart" width="380" height="380"></canvas>
-                <div id="my-legend-con" class="legend-con"></div>
+            <td style="padding-right: 30px; max-width: 5%">
+                <div id="expense-legends" style="text-align: left; text-wrap: normal"></div>
+            </td>
+            <td>
+                <canvas id="income-pie-chart" width="350" height="350"></canvas>
+            </td>
+            <td style="padding-right: 30px; max-width: 5%">
+                <div id="income-legends" style="text-align: left; text-wrap: normal"></div>
             </td>
         </tr>
     </table>
@@ -185,17 +191,29 @@
           },
         options: {
           legend: {
-            position: "right",
-            align: "middle"
+            display: false
           },
-          maintainAspectRatio: true,
+          maintainAspectRatio: false,
           aspectRatio: 2.5,
           cutoutPercentage: 70,
           responsive: true,
           title: "Expenses",
-          amount: "${{total.monthly_spent}}"
+          amount: "${{total.monthly_spent}}",
+          legendCallback: function(chart) {
+              let text = [];
+              text.push('<ul>');
+              for (let i = 0; i < {{ total.expense_labels | length }}; i++) {
+                  text.push('<li style="color:' + chart.data.datasets[0].backgroundColor[i] + '">');
+                  text.push('<span style="color: black">' + chart.data.labels[i] + '</span>');
+                  text.push('</li>');
+              }
+              text.push('</ul>');
+              return text.join("");
+          }
         }
     });
+
+    document.getElementById('expense-legends').innerHTML = pieChart.generateLegend();
 
     /**
      * Income Chart
@@ -215,17 +233,28 @@
           },
         options: {
           legend: {
-            position: "right",
-            align: "middle"
+            display: false
           },
-          maintainAspectRatio: true,
+          maintainAspectRatio: false,
           aspectRatio: 2.5,
           cutoutPercentage: 70,
           responsive: true,
           title: "Income",
           amount: "${{total.monthly_gain}}",
+          legendCallback: function(chart) {
+            let text = [];
+            text.push('<ul>');
+            for (let i = 0; i < {{ total.income_labels | length }}; i++) {
+                text.push('<li style="color:' + chart.data.datasets[0].backgroundColor[i] + '">');
+                text.push('<span style="color: black">' + chart.data.labels[i] + '</span>');
+                text.push('</li>');
+            }
+            text.push('</ul>');
+            return text.join("");
+          }
         }
     });
+    document.getElementById('income-legends').innerHTML = pieChart2.generateLegend();
 
     Chart.pluginService.register({
       beforeDraw: function(chart) {
@@ -239,7 +268,7 @@
         ctx.textBaseline = "bottom";
 
         let title = chart.config.options.title,
-          textX = Math.round((width - ctx.measureText(title).width) / 2) - 25,
+          textX = Math.round((width - ctx.measureText(title).width) / 2),
           textY = height / 2 - 25;
         ctx.fillText(title, textX, textY);
 
@@ -248,7 +277,7 @@
         ctx.textBaseline = "top";
 
         let amount = chart.config.options.amount,
-          text2X = Math.round((width - ctx.measureText(amount).width) / 2) - 25,
+          text2X = Math.round((width - ctx.measureText(amount).width) / 2),
           text2Y = height / 2 - 20;
 
         ctx.fillText(amount, text2X, text2Y);
