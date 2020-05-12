@@ -100,25 +100,24 @@
     {% for transaction in total.transaction_list %}
     <article class="media content-section">
       <div class="media-body">
-        {% if transaction.t_type  == 'Withdrawal' %}
-        <div class="article-metadata">
-          <a class="mr-2" href="{% url 'transaction-detail' transaction.id %}">{{ transaction.t_type}} for
-            {{transaction.source}}</a>
-          <small class="text-muted">{{ transaction.date_posted|date:"F d, Y"}}</small>
+        <div id="HASH" class="article-metadata">
+            <small class="text-muted">{{ transaction.date_posted|date:"F d, Y"}}</small>
+            <span>{{transaction.t_type}}</span>
         </div>
-        <h2 class="article-title" style="color:red">
-          - ${{ transaction.amount }}
-        </h2>
-        {% else %}
-        <div class="article-metadata">
-          <a class="mr-2" href="{% url 'transaction-detail' transaction.id %}">{{ transaction.t_type}} from
-            {{transaction.source}}</a>
-          <small class="text-muted">{{ transaction.date_posted|date:"F d, Y"}}</small>
+        <div id="HASH" class="article-title">
+            <h2>
+                <a class="mr-2" href="{% url 'transaction-detail' transaction.id %}">{{transaction.source}}</a>
+            </h2>
+            {% if transaction.t_type  == 'Withdrawal' %}
+                <h2 style="color: red">
+                    - ${{ transaction.amount }}
+                </h2>
+            {% else %}
+                <h2 style="color:limegreen">
+                    + ${{ transaction.amount }}
+                </h2>
+            {% endif %}
         </div>
-        <h2 class="article-title" style="color:limegreen">
-          + ${{ transaction.amount }}
-        </h2>
-        {% endif %}
       </div>
     </article>
     {% endfor %}
@@ -204,7 +203,7 @@
               text.push('<ul>');
               for (let i = 0; i < {{ total.expense_labels | length }}; i++) {
                   text.push('<li style="color:' + chart.data.datasets[0].backgroundColor[i] + '">');
-                  text.push('<span style="color: black">' + chart.data.labels[i] + '</span>');
+                  text.push('<span style="color: black; font-size: 14pt">' + chart.data.labels[i] + '</span>');
                   text.push('</li>');
               }
               text.push('</ul>');
@@ -246,7 +245,7 @@
             text.push('<ul>');
             for (let i = 0; i < {{ total.income_labels | length }}; i++) {
                 text.push('<li style="color:' + chart.data.datasets[0].backgroundColor[i] + '">');
-                text.push('<span style="color: black">' + chart.data.labels[i] + '</span>');
+                text.push('<span style="color: black; font-size: 14pt"">' + chart.data.labels[i] + '</span>');
                 text.push('</li>');
             }
             text.push('</ul>');
