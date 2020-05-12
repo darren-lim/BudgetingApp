@@ -87,3 +87,12 @@ a.article-title:hover {
 .account-heading {
   font-size: 2.5rem;
 }
+
+.canvas-con {
+    display: flex;
+    align-items:center;
+    justify-content: center;
+    min-height: 365px;
+    position: relative;
+}
+
