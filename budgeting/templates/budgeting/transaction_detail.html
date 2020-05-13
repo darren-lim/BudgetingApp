@@ -8,7 +8,7 @@
 <article class="media content-section">
   <div class="media-body">
     <div class="article-metadata">
-      <a class="mr-2" href="#">{{ object.t_type }} - ${{object.amount}}</a>
+      <a class="mr-2" href="#">{{ object.t_type }} from {{object.source}}</a>
       <small class="text-muted">{{ object.date_posted|date:"F d, Y"}}</small>
       <div>
         <a
@@ -23,7 +23,7 @@
         >
       </div>
     </div>
-    <h2 class="article-title">{{ object.source }}</h2>
+    <h2 class="article-title">${{ object.amount }}</h2>
     <p class="article-content">{{ object.notes }}</p>
   </div>
 </article>

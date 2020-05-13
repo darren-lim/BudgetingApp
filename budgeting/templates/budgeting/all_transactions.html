@@ -1,0 +1,76 @@
+{% extends "budgeting/base.html" %}
+<!-- ^ Uses the base template (base.html)-->
+{% block content %}
+<!-- This is a for loop-->
+<!-- double braces allows us to access a variable. We use dot syntax on python dictionary in html. -->
+
+    {% if user.is_authenticated %}
+        <div class="row">
+            <div class="col-md-8 display-3">
+                <h1>
+                    All Transactions
+                </h1>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-8">
+                {% if transactions != None %}
+                    {% for transaction in transactions %}
+                    <article class="media content-section">
+                      <div class="media-body">
+                        <div id="HASH" class="article-metadata">
+                            <small class="text-muted">{{ transaction.date_posted|date:"F d, Y"}}</small>
+                            <span>{{transaction.t_type}}</span>
+                        </div>
+                        <div id="HASH" class="article-title">
+                            <h2>
+                                <a class="mr-2" href="{% url 'transaction-detail' transaction.id %}">{{transaction.source}}</a>
+                            </h2>
+                            {% if transaction.t_type  == 'Withdrawal' %}
+                                <h2 style="color: red">
+                                    - ${{ transaction.amount }}
+                                </h2>
+                            {% else %}
+                                <h2 style="color:limegreen">
+                                    + ${{ transaction.amount }}
+                                </h2>
+                            {% endif %}
+                        </div>
+                      </div>
+                    </article>
+                    {% endfor %}
+                    {% if is_paginated %}
+                        {% if page_obj.has_previous %}
+                            <a class="btn btn-outline-info mb-4" href="?page=1">First</a>
+                            <a class="btn btn-outline-info mb-4" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                        {% endif %}
+
+                        {% for num in page_obj.paginator.page_range %}
+                            {% if page_obj.number == num %}
+                                <a class="btn btn-info mb-4" href="?page={{ num }}">{{ num }}</a>
+                            <!-- check if there are pages within 3 pages of current page-->
+                            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                <a class="btn btn-outline-info mb-4" href="?page={{ num }}">{{ num }}</a>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if page_obj.has_next %}
+                            <a class="btn btn-outline-info mb-4" href="?page={{ page_obj.next_page_number }}">Next</a>
+                            <a class="btn btn-outline-info mb-4" href="?page={{ page_obj.paginator.num_pages }}">Last</a>
+                        {% endif %}
+                    {% endif %}
+                {% endif %}
+            </div>
+            <div class="col-md-4">
+                <div class="content-section">
+                  <h3>Create A New Transaction</h3>
+                  <p class='text-muted'>Add new transactions here.</p>
+                    <ul class="list-group">
+                    <li class="list-group-item list-group-item-light"><a href="{% url 'transaction-create' parameter='Deposit' %}">Deposit</a></li>
+                      <li class="list-group-item list-group-item-light"><a href="{% url 'transaction-create' parameter='Withdraw' %}">Withdraw</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+{% endblock content %}
