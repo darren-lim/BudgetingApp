@@ -1,48 +1,28 @@
 {% extends "budgeting/base.html" %}
 <!-- ^ Uses the base template (base.html)-->
+{% block balance %}
+    <h3 class="display-2" style="color:black">${{total.total}}</h3>
+{% endblock %}
+
+
 {% block content %}
 
 {% if user.is_authenticated %}
-<!-- PLEASE CHANGE THE BACKGROUND COLOR OMG SO BAD -->
+<!--
 <div class="jumbotron container-fluid text-center" style="padding-top: 2%;padding-bottom: 2%;">
 
     {% if total.total == None %}
       <h1 class="display-3"><a href="{% url 'total-create'%}">Enter your current balance</a></h1>
     {% else %}
-    <!-- <h1><a href="{% url 'total-create'%}"></a></h1> -->
     <h3>Current Balance:</h3>
     <h3 class="display-2" style="color:black">${{total.total}}</h3>
     <hr class="my-2">
-    <!--
-    <div class="row" style="padding-top: 1%">
-      {% if total.monthly_gain == 0 %}
-        <div class="col text-center">
-          <h4>This Month Gained:</h4>
-          <h1 style="color:limegreen">+ $0.00</h1>
-        </div>
-      {% else %}
-          <div class="col text-center">
-            <h4>This Month Gained:</h4>
-            <h1 style="color:limegreen">+ ${{total.monthly_gain}}</h1>
-          </div>
-      {% endif %}
-      {% if total.monthly_spent == None %}
-          <div class="col text-center">
-            <h4>This Month Spent: </h4>
-            <h1 style="color:red">- $0.00</h1>
-          </div>
-      {% else %}
-          <div class="col text-center">
-            <h4>This Month Spent: </h4>
-            <h1 style="color:red">- ${{total.monthly_spent}}</h1>
-          </div>
-      {% endif %}
-    </div>
-    -->
-    <!-- <a href="{% url 'total-create'%}">Amount gained this month: {{total.monthly_gain}}</a></p> -->
-    <!-- <a href="{% url 'total-create'%}">Amount spent this month: {{total.monthly_spent}}</a> -->
     {% endif %}
 
+</div>
+-->
+<div class="container text-left">
+    <h1 class="display-3">Monthly Overview</h1>
 </div>
 {% if total.transaction_list|length == 0 or total.transaction_list == None %}
     {% if total.total != None %}
@@ -91,8 +71,8 @@
   </div>
 </div>
 <div class="row">
-  <div class="col-md-8">
-    <div class="text-center">
+  <div class="col-md">
+    <div class="text-left">
       <h3 class="display-4" style="margin-bottom: 2%">
         5 Recent Transactions
       </h3>
@@ -122,23 +102,11 @@
     </article>
     {% endfor %}
   </div>
-  <div class="col-md-4">
-    <div class="content-section">
-      <h3>Create A New Transaction</h3>
-      <p class='text-muted'>Add new transactions here.</p>
-      <ul class="list-group">
-        <li class="list-group-item list-group-item-light"><a
-            href="{% url 'transaction-create' parameter='Deposit' %}">Deposit</a></li>
-        <li class="list-group-item list-group-item-light"><a
-            href="{% url 'transaction-create' parameter='Withdrawal' %}">Withdraw</a></li>
-      </ul>
-    </div>
-  </div>
 </div>
 {% endif %}
 {% else %}
 <div class="row">
-  <div class="col-md-8">
+  <div class="col-md">
     <article class="media content-section">
       <div class="media-body">
         <div class="article-metadata">
@@ -154,19 +122,19 @@
 {% endif %}
 <script>
     Chart.defaults.global.legend.labels.usePointStyle = true;
-    const colorScaleExpense = d3.interpolateSinebow;
+    const colorScaleExpense = d3.interpolateReds;
     let dataLengthExpense = {{ total.expense_data| length }};
     const colorRangeInfo = {
-        colorStart: 0,
+        colorStart: 0.3,
         colorEnd: 1,
         useEndAsStart: false,
     };
     let COLORSEXPENSE = interpolateColors(dataLengthExpense, colorScaleExpense, colorRangeInfo);
 
-    const colorScaleIncome = d3.interpolateRainbow;
+    const colorScaleIncome = d3.interpolateGreens;
     let dataLengthIncome = {{ total.income_data| length }};
     const colorRangeInfo2 = {
-        colorStart: 0,
+        colorStart: 0.3,
         colorEnd: 1,
         useEndAsStart: false,
     };
