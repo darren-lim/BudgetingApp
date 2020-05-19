@@ -7,10 +7,10 @@ class TransactionForm(forms.ModelForm):
 
     class Meta:
         model = Transaction
-        fields = ['amount', 'source', 'date_posted', 'notes']
+        fields = ['t_type', 'amount', 'source', 'category', 'date_posted', 'notes']
         widgets = {
             'date_posted': forms.DateInput(format='%m/%d/%Y', attrs={'placeholder': 'e.g. 02/15/2020'}),
-            'source': forms.TextInput(attrs={'placeholder': 'e.g. Part-time job, Utilities, Gas'})
+            'source': forms.TextInput(attrs={'placeholder': 'e.g. Part-time job, Utilities, Gas'}),
         }
 
     def __init__(self, *args, **kwargs):
