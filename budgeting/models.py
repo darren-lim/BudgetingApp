@@ -1,4 +1,4 @@
-from django.db import models  # databases!
+from djongo import models  # databases!
 from django.contrib.auth.models import User
 from django.urls import reverse
 
