@@ -6,8 +6,8 @@ from django.shortcuts import render
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.views.generic import (
     ListView, DetailView, CreateView, UpdateView, DeleteView)
-from .models import Transaction, Total, History
-from .forms import TransactionForm, UpdateForm, TotalForm
+from .models import Transaction, Total, History, Income, Expense
+from .forms import TransactionForm, UpdateForm, TotalForm, IncomeForm
 from django.db.models import Sum
 
 
@@ -205,6 +205,31 @@ class TransCreateView(LoginRequiredMixin, CreateView):
         kwargs['user'] = self.request.user
         source = ('Job', 'Food', 'Gas')
         kwargs['source'] = source
+        return kwargs
+
+    def form_valid(self, form):  # sets the logged in user as the author of that transaction
+        form.instance.author = self.request.user
+        form.instance.t_type = self.kwargs['parameter']
+        return super().form_valid(form)
+
+
+class IncomeCreateView(LoginRequiredMixin, CreateView):
+    # source = ('Job', 'Food', 'Gas')
+    model = Income
+    form_class = IncomeForm
+    template_name = 'budgeting/income_form.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(IncomeCreateView, self).get_context_data(**kwargs)
+        context['t_type'] = self.kwargs['parameter'] # t type = deposit from urls
+        return context
+
+    # if I leave out get_form() the object is successfully saved
+    # but the user's choice is not limited
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user
         return kwargs
 
     def form_valid(self, form):  # sets the logged in user as the author of that transaction

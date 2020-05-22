@@ -1,6 +1,6 @@
 from django import forms
 from .fields import ListTextWidget
-from .models import Transaction, Total
+from .models import Transaction, Total, Income, Expense
 
 
 class TransactionForm(forms.ModelForm):
@@ -17,6 +17,28 @@ class TransactionForm(forms.ModelForm):
         _source_list = kwargs.pop('source', None)
         user = kwargs.pop('user', None)
         super(TransactionForm, self).__init__(*args, **kwargs)
+
+        # the "name" parameter will allow you to use the same widget more than once in the same
+        # form, not setting this parameter differently will cuse all inputs display the
+        # same list.
+        self.fields['source'].widget = ListTextWidget(
+            data_list=_source_list, name='source')
+
+
+class IncomeForm(TransactionForm):
+
+    class Meta:
+        model = Income
+        fields = ['source', 'trans_category', 'amount', 'date_posted', 'notes']
+        widgets = {
+            'date_posted': forms.DateInput(format='%m/%d/%Y', attrs={'placeholder': 'e.g. 02/15/2020'}),
+            'source': forms.TextInput(attrs={'placeholder': 'e.g. Part-time job, Utilities, Gas'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        _source_list = kwargs.pop('source', None)
+        user = kwargs.pop('user', None)
+        super(IncomeForm, self).__init__(*args, **kwargs)
 
         # the "name" parameter will allow you to use the same widget more than once in the same
         # form, not setting this parameter differently will cuse all inputs display the
