@@ -2,12 +2,14 @@
 import datetime
 # very import import!! Allows us to return a rendered template.
 # Our views need to return an HttpResponse or exception.Render returns an HttpResponse in the background
+import decimal
+
 from django.shortcuts import render
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.views.generic import (
     ListView, DetailView, CreateView, UpdateView, DeleteView)
-from .models import Transaction, Total, History, Income, Expense
-from .forms import TransactionForm, UpdateForm, TotalForm, IncomeForm
+from .models import Transaction, Total, History
+from .forms import TransactionForm, UpdateForm, TotalForm
 from django.db.models import Sum
 
 
@@ -40,7 +42,7 @@ class HomeView(ListView):
                     obj_tuple = History.objects.update_or_create(
                         month=month, year=year, author=self.request.user, defaults={'monthly_amount_gained': amount_gained})
                     obj_tuple[0].save()
-                elif transaction.t_type == "Withdrawal":
+                elif transaction.t_type == 'Withdrawal':
                     if historyqueryset.first() is not None and historyqueryset.first().monthly_amount_spent is not None:
                         amount_spent = historyqueryset.first().monthly_amount_spent + transaction.amount
                         obj_tuple = History.objects.update_or_create(
@@ -57,7 +59,6 @@ class HomeView(ListView):
 
             # setting total amount to user's current balance when they first started using the app (initial_amount)
             total_amount = totalqueryset.first().initial_amount
-
             # checking to see if there any existing transactions
             # if there are we have to update our totals database
             # if not, we just return the total_amount
@@ -185,12 +186,33 @@ class TransDetailView(DetailView):
     # we don't have to add the name of the template to search for b/c by default, our classes will look for template with this naming convention:
     # <app>/<model>_<viewtype>.html (as long as our templates are in a directory with budgeting (the name of our app), transaction, and the type, we are good)
 
+IN_CHOICES = (
+        ('Paycheck', 'PAYCHECK'),
+        ('Transfer', 'TRANSFER'),
+        ('Sugar Daddy Money', 'SUGAR DADDY MONEY'),
+        ('Other Income', 'OTHER INCOME'),
+    )
 
+EX_CHOICES = (
+        ('Food', 'FOOD'),
+        ('Auto', 'AUTO'),
+        ('Entertainment', 'ENTERTAINMENT'),
+        ('Home', 'HOME'),
+        ('Personal', 'PERSONAL')
+    )
 class TransCreateView(LoginRequiredMixin, CreateView):
     # source = ('Job', 'Food', 'Gas')
     model = Transaction
     form_class = TransactionForm
     template_name = 'budgeting/transaction_form.html'
+    choices = None
+
+    def dispatch(self, request, *args, **kwargs):
+        if self.kwargs['parameter'] == "Deposit":
+            self.choices = IN_CHOICES
+        elif self.kwargs['parameter'] == "Withdrawal":
+            self.choices = EX_CHOICES
+        return super(TransCreateView, self).dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = super(TransCreateView, self).get_context_data(**kwargs)
@@ -205,31 +227,7 @@ class TransCreateView(LoginRequiredMixin, CreateView):
         kwargs['user'] = self.request.user
         source = ('Job', 'Food', 'Gas')
         kwargs['source'] = source
-        return kwargs
-
-    def form_valid(self, form):  # sets the logged in user as the author of that transaction
-        form.instance.author = self.request.user
-        form.instance.t_type = self.kwargs['parameter']
-        return super().form_valid(form)
-
-
-class IncomeCreateView(LoginRequiredMixin, CreateView):
-    # source = ('Job', 'Food', 'Gas')
-    model = Income
-    form_class = IncomeForm
-    template_name = 'budgeting/income_form.html'
-
-    def get_context_data(self, **kwargs):
-        context = super(IncomeCreateView, self).get_context_data(**kwargs)
-        context['t_type'] = self.kwargs['parameter'] # t type = deposit from urls
-        return context
-
-    # if I leave out get_form() the object is successfully saved
-    # but the user's choice is not limited
-
-    def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        kwargs['user'] = self.request.user
+        kwargs['choices'] = self.choices
         return kwargs
 
     def form_valid(self, form):  # sets the logged in user as the author of that transaction

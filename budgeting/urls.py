@@ -2,7 +2,7 @@ from django.urls import path
 from . import views
 from .views import (TransListView, TransDetailView,
                     TransCreateView, TransUpdateView,
-                    TransDeleteView, HomeView, TotalCreateView, IncomeCreateView)
+                    TransDeleteView, HomeView, TotalCreateView)
 
 
 urlpatterns = [
@@ -12,7 +12,7 @@ urlpatterns = [
          name='total-create'),
     path('transaction/<int:pk>/', TransDetailView.as_view(),
          name='transaction-detail'),
-    path('transaction/new/<str:parameter>/', IncomeCreateView.as_view(),
+    path('transaction/new/<str:parameter>/', TransCreateView.as_view(),
          name='transaction-create'),
     path('transaction/<int:pk>/update/', TransUpdateView.as_view(),
          name='transaction-update'),
