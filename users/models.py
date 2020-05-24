@@ -1,6 +1,7 @@
-from django.db import models
+from djongo import models
 from django.contrib.auth.models import User
 from PIL import Image
+
 
 # Create your models here.
 class Profile(models.Model):

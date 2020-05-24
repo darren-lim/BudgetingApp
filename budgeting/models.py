@@ -1,13 +1,23 @@
-from django.db import models  # databases!
+from djongo import models  # databases!
 from django.contrib.auth.models import User
 from django.urls import reverse
 
 
+
 class Transaction(models.Model):
-    t_type = models.CharField("Deposit/Withdrawal", max_length=15, null=True)
+    T_TYPE_CHOICES = (('Income', 'INCOME'), ('Expense','EXPENSE'))
+    CATEGORY_CHOICES = (
+        ('Food', 'FOOD'),
+        ('Auto', 'AUTO'),
+        ('Entertainment', 'ENTERTAINMENT'),
+        ('Home', 'HOME'),
+        ('Personal', 'PERSONAL')
+    )
+    t_type = models.CharField("Transaction Type", choices=T_TYPE_CHOICES, max_length=15, null=True)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     source = models.CharField(
         "Source (Case Sensitive)", max_length=30)
+    category = models.CharField("Category", choices=CATEGORY_CHOICES, max_length=15, null=True)
     notes = models.TextField("Additional Information", blank=True, null=True)
     date_posted = models.DateField("Transaction Date (mm/dd/yyyy)",
                                    auto_now_add=False, auto_now=False, blank=False, null=True)
