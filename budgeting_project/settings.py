@@ -78,8 +78,6 @@ WSGI_APPLICATION = 'budgeting_project.wsgi.application'
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
 
 DATABASES = {
-    #'HOST': 'mongodb+srv://burger:burgercheese@treatyoself-8nrgu.mongodb.net/test?retryWrites=true&w=majority',
-
     'default': {
         'ENGINE':   'djongo',
         'NAME':     'TreatYoSelf',

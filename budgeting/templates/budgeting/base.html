@@ -29,57 +29,10 @@
     {% endif %}
   </head>
   <!-- end of head -->
-  <body style="margin-top: 2%">
+  <body>
       <!-- added a navigation bar -->
-  <div class="container-fluid">
-    <div class="row">
-      <div class="col-md"></div>
-      <div class="col-sm">
-        <div class="row container">
-          <a class="mr-4" href="/">Treat Yo Self</a>
-        </div>
-        <div class="row container">
-            <h1>balance here</h1>
-            {% block balance %}{% endblock %}
-        </div>
-        <div class="row container">
-          <div class="list-group borderless">
-              {% if user.is_authenticated %}
-                <a class="nav-item nav-link" href="{% url 'budgeting-home'%}">Home</a>
-                <a class="nav-item nav-link" href="{% url 'transaction-create' parameter='Deposit' %}">Deposit</a>
-                <a class="nav-item nav-link" href="{% url 'transaction-create' parameter='Withdraw' %}">Withdraw</a>
-                <a class="nav-item nav-link" href="{% url 'all-transactions'%}">All-Transactions</a>
-              {% endif %}
-          </div>
-        </div>
-      </div>
-      <div class="col-md">
-        <!-- this block is called content (name we chose)-->
-        <!-- div gives us some nice spacing/margin padding-->
-        <main role="main" class="container">
-            <!-- Main Transaction list -->
-            {% block content %}{% endblock content%}
-        </main>
-      </div>
-      <div class="col-sm">
-        <div class="row container">
-          <div class="list-group borderless">
-              {% if user.is_authenticated %}
-                <a class="nav-item nav-link" href="{% url 'profile' %}">Profile</a>
-                <a class="nav-item nav-link" href="{% url 'logout' %}">Logout</a>
-              {% else %}
-                <a class="nav-item nav-link" href="{% url 'login' %}">Login</a>
-                <a class="nav-item nav-link" href="{% url 'register' %}">Register</a>
-              {% endif %}
-          </div>
-        </div>
-      </div>
-      <div class="col-md"></div>
-    </div>
-  </div>
-<!--
     <header class="site-header">
-      <nav class="navbar navbar-expand-md navbar-dark bg-steel">
+      <nav class="navbar navbar-expand-md navbar-dark bg-steel fixed-top">
         <div class="container">
           <a class="navbar-brand mr-4" href="/">Treat Yo Self</a>
           <button
@@ -95,12 +48,14 @@
           </button>
           <div class="collapse navbar-collapse" id="navbarToggle">
             <div class="navbar-nav mr-auto">
+                <!--we take the name of the urls in the urls.py module-->
               <a class="nav-item nav-link" href="{% url 'budgeting-home'%}">Home</a>
               <a class="nav-item nav-link" href="{% url 'budgeting-about'%}">About</a>
                 {% if user.is_authenticated %}
                     <a class="nav-item nav-link" href="{% url 'all-transactions'%}">All-Transactions</a>
                 {% endif %}
             </div>
+            <!-- Navbar Right Side -->
             <div class="navbar-nav">
               {% if user.is_authenticated %}
                 <a class="nav-item nav-link" href="{% url 'transaction-create' parameter='Deposit' %}">Deposit</a>
@@ -116,7 +71,14 @@
         </div>
     </nav>
   </header>
--->
+
+    <!-- this block is called content (name we chose)-->
+    <!-- div gives us some nice spacing/margin padding-->
+    <main role="main" class="container">
+        <!-- Main Transaction list -->
+        {% block content %}{% endblock content%}
+    </main>
+
     <!-- Optional JavaScript -->
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
     <script
