@@ -8,7 +8,7 @@ from django.shortcuts import render
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.views.generic import (
     ListView, DetailView, CreateView, UpdateView, DeleteView)
-from .models import Transaction, Total, History
+from .models import Transaction, Total, History, Categories
 from .forms import TransactionForm, UpdateForm, TotalForm
 from django.db.models import Sum
 
@@ -33,23 +33,24 @@ class HomeView(ListView):
                 # creating history queryset!
                 historyqueryset = History.objects.filter(
                     author=self.request.user, year=year, month=month)
-                if transaction.t_type == 'Deposit':
+                if transaction.t_type == 'Income':
                     if historyqueryset.first() is not None and historyqueryset.first().monthly_amount_gained is not None:
                         amount_gained = historyqueryset.first().monthly_amount_gained + \
-                            transaction.amount
+                            transaction.d_amount
                     else:
-                        amount_gained = transaction.amount
+                        amount_gained = transaction.d_amount
                     obj_tuple = History.objects.update_or_create(
                         month=month, year=year, author=self.request.user, defaults={'monthly_amount_gained': amount_gained})
                     obj_tuple[0].save()
-                elif transaction.t_type == 'Withdrawal':
+                elif transaction.t_type == 'Expense':
                     if historyqueryset.first() is not None and historyqueryset.first().monthly_amount_spent is not None:
-                        amount_spent = historyqueryset.first().monthly_amount_spent + transaction.amount
+                        amount_spent = historyqueryset.first().monthly_amount_spent + \
+                            transaction.d_amount
                         obj_tuple = History.objects.update_or_create(
                             month=month, year=year, author=self.request.user, defaults={'monthly_amount_spent': amount_spent})
                         obj_tuple[0].save()
                     else:
-                        amount_spent = transaction.amount
+                        amount_spent = transaction.d_amount
                     obj_tuple = History.objects.update_or_create(
                         month=month, year=year, author=self.request.user, defaults={'monthly_amount_spent': amount_spent})
                     obj_tuple[0].save()
@@ -58,31 +59,36 @@ class HomeView(ListView):
                 obj_tuple_t[0].save()
 
             # setting total amount to user's current balance when they first started using the app (initial_amount)
-            total_amount = totalqueryset.first().initial_amount
+            total_amount = decimal.Decimal(
+                totalqueryset.first().initial_amount) * 100
+            total_amount = int(total_amount)
             # checking to see if there any existing transactions
             # if there are we have to update our totals database
             # if not, we just return the total_amount
             transqueryset2 = Transaction.objects.filter(
                 author=self.request.user).order_by('-date_posted')
-            transdict = transqueryset2.aggregate(Sum('amount'))
+            transdict = transqueryset2.aggregate(Sum('d_amount'))
 
-            if transdict.get('amount__sum') is not None:
+            if transdict.get('d_amount__sum') is not None:
                 historyqueryset2 = History.objects.all()
+
                 historydict1 = historyqueryset2.aggregate(
                     Sum('monthly_amount_gained'))
-                deposits = historydict1.get("monthly_amount_gained__sum")
+                incomes = historydict1.get("monthly_amount_gained__sum")
                 historydict2 = historyqueryset2.aggregate(
                     Sum('monthly_amount_spent'))
-                withdrawals = historydict2.get("monthly_amount_spent__sum")
-                if deposits is not None and withdrawals is not None:
-                    total_amount -= withdrawals
-                    total_amount += deposits
+                expenses = historydict2.get("monthly_amount_spent__sum")
+                if incomes is not None and expenses is not None:
+                    total_amount -= expenses
+                    total_amount += incomes
 
-                elif deposits is None and withdrawals is not None:
-                    total_amount -= withdrawals
+                elif incomes is None and expenses is not None:
+                    total_amount -= expenses
 
-                elif deposits is not None and withdrawals is None:
-                    total_amount += deposits
+                elif incomes is not None and expenses is None:
+                    total_amount += incomes
+                totalqueryset.update(
+                    total_amount=total_amount, total_amount_gained=incomes, total_amount_spent=expenses)
                 '''-----------------------------------------------------------------'''
                 # creating current year and month string
                 now = datetime.date.today()
@@ -97,54 +103,67 @@ class HomeView(ListView):
                 else:
                     monthly_gain = currentqueryset.first().monthly_amount_gained
                     monthly_spent = currentqueryset.first().monthly_amount_spent
-                totalqueryset.update(
-                    total_amount=total_amount, total_amount_gained=deposits, total_amount_spent=withdrawals)
-
+                '''-----------------------------------------------------------------'''
                 ExpenseLabels = []
                 ExpenseData = []
                 IncomeLabels = []
                 IncomeData = []
 
-                expenses = dict()
-                income = dict()
+                expense_dict = dict()
+                income_dict = dict()
 
-                piequeryset = Transaction.objects.filter(
+                current_queryset = Transaction.objects.filter(
                     author=self.request.user, year=current_year, month=current_month)
-                for transaction in piequeryset:
-                    if transaction.t_type == 'Withdrawal':
-                        if transaction.source in expenses:
-                            expenses[transaction.source] += float(transaction.amount)
+                for transaction in current_queryset:
+                    if transaction.t_type == 'Expense':
+                        if transaction.source in expense_dict:
+                            expense_dict[transaction.source] += float(
+                                transaction.d_amount)/100
                         else:
-                            expenses[transaction.source] = float(transaction.amount)
-                    elif transaction.t_type == 'Deposit':
-                        if transaction.source in income:
-                            income[transaction.source] += float(transaction.amount)
+                            expense_dict[transaction.source] = float(
+                                transaction.d_amount)/100
+                    elif transaction.t_type == 'Income':
+                        if transaction.source in income_dict:
+                            income_dict[transaction.source] += float(
+                                transaction.d_amount)/100
                         else:
-                            income[transaction.source] = float(transaction.amount)
+                            income_dict[transaction.source] = float(
+                                transaction.d_amount)/100
 
-                for key, value in expenses.items():
+                for key, value in expense_dict.items():
                     ExpenseLabels.append(key)
-                    ExpenseData.append(value)
+                    ExpenseData.append(round(value, 2))
 
-                for key, value in income.items():
+                for key, value in income_dict.items():
                     IncomeLabels.append(key)
-                    IncomeData.append(value)
+                    IncomeData.append(round(decimal.Decimal(value), 2))
+                    print(IncomeData)
 
                 if monthly_gain is None:
                     monthly_gain = 0
                 if monthly_spent is None:
                     monthly_spent = 0
-                return {'total': total_amount,
+                '''-----------------------------------------------------------------'''
+                # Category goals
+                # categoryDict = categoryQuerySet.aggregate(
+                # Sum('d_amount'))
+
+                categoryQuerySet = Transaction.objects.filter(
+                    author=self.request.user, t_type='Expense', year=current_year, month=current_month)
+                for transaction in categoryQuerySet:
+                    if Cate
+
+                return {'total': round(decimal.Decimal(total_amount)/100, 2),
                         'transaction_list': transqueryset2[:5],
-                        'monthly_gain': monthly_gain,
-                        'monthly_spent': monthly_spent,
+                        'monthly_gain': round(decimal.Decimal(monthly_gain)/100, 2),
+                        'monthly_spent': round(decimal.Decimal(monthly_spent)/100, 2),
                         'expense_labels': ExpenseLabels,
                         'expense_data': ExpenseData,
                         'income_labels': IncomeLabels,
                         'income_data': IncomeData
                         }
 
-            return {'total': total_amount,
+            return {'total': round(decimal.Decimal(total_amount)/100, 2),
                     'transaction_list': [],
                     'monthly_gain': 0,
                     'monthly_spent': 0,
@@ -186,20 +205,23 @@ class TransDetailView(DetailView):
     # we don't have to add the name of the template to search for b/c by default, our classes will look for template with this naming convention:
     # <app>/<model>_<viewtype>.html (as long as our templates are in a directory with budgeting (the name of our app), transaction, and the type, we are good)
 
+
 IN_CHOICES = (
-        ('Paycheck', 'PAYCHECK'),
-        ('Transfer', 'TRANSFER'),
-        ('Sugar Daddy Money', 'SUGAR DADDY MONEY'),
-        ('Other Income', 'OTHER INCOME'),
-    )
+    ('Paycheck', 'PAYCHECK'),
+    ('Transfer', 'TRANSFER'),
+    ('Sugar Daddy Money', 'SUGAR DADDY MONEY'),
+    ('Other Income', 'OTHER INCOME'),
+)
 
 EX_CHOICES = (
-        ('Food', 'FOOD'),
-        ('Auto', 'AUTO'),
-        ('Entertainment', 'ENTERTAINMENT'),
-        ('Home', 'HOME'),
-        ('Personal', 'PERSONAL')
-    )
+    ('Food', 'FOOD'),
+    ('Auto', 'AUTO'),
+    ('Entertainment', 'ENTERTAINMENT'),
+    ('Home', 'HOME'),
+    ('Personal', 'PERSONAL')
+)
+
+
 class TransCreateView(LoginRequiredMixin, CreateView):
     # source = ('Job', 'Food', 'Gas')
     model = Transaction
@@ -208,9 +230,9 @@ class TransCreateView(LoginRequiredMixin, CreateView):
     choices = None
 
     def dispatch(self, request, *args, **kwargs):
-        if self.kwargs['parameter'] == "Deposit":
+        if self.kwargs['parameter'] == "Income":
             self.choices = IN_CHOICES
-        elif self.kwargs['parameter'] == "Withdrawal":
+        elif self.kwargs['parameter'] == "Expense":
             self.choices = EX_CHOICES
         return super(TransCreateView, self).dispatch(request, *args, **kwargs)
 
@@ -233,6 +255,8 @@ class TransCreateView(LoginRequiredMixin, CreateView):
     def form_valid(self, form):  # sets the logged in user as the author of that transaction
         form.instance.author = self.request.user
         form.instance.t_type = self.kwargs['parameter']
+        # we set "amount"s value * 100 equal to the "d_amount" which is what we use to aggregate in the end.
+        form.instance.d_amount = int(form.cleaned_data['amount'] * 100)
         return super().form_valid(form)
 
 
@@ -245,16 +269,24 @@ class TransUpdateView(LoginRequiredMixin, UpdateView):
     # if I leave out get_form() the object is successfully saved
     # but the user's choice is not limited
 
+    def dispatch(self, request, *args, **kwargs):
+        self.choices = EX_CHOICES
+        return super(TransUpdateView, self).dispatch(request, *args, **kwargs)
+
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         kwargs['user'] = self.request.user
         source = ('Job', 'Food', 'Gas')
         kwargs['source'] = source
+        kwargs['choices'] = self.choices
         return kwargs
 
     def form_valid(self, form):  # sets the logged in user as the author of that transaction
         form.instance.author = self.request.user
+        form.instance.d_amount = int(form.cleaned_data['amount'] * 100)
         return super().form_valid(form)
+
+    # def update(self, *args, **kwargs):
 
 
 class TransDeleteView(LoginRequiredMixin, DeleteView):
@@ -271,26 +303,28 @@ class TransDeleteView(LoginRequiredMixin, DeleteView):
         # creating history queryset!
         historyqueryset = History.objects.filter(
             author=self.request.user, year=year, month=month)
-        if transaction.t_type == 'Deposit':
-            total_updated_amount = totalqueryset.first().total_amount - transaction.amount
+        if transaction.t_type == 'Income':
+            total_updated_amount = totalqueryset.first().total_amount - \
+                transaction.d_amount
             total_updated_gained_amount = totalqueryset.first().total_amount_gained - \
-                transaction.amount
+                transaction.d_amount
 
             updated_amount = historyqueryset.first().monthly_amount_gained - \
-                transaction.amount
+                transaction.d_amount
             obj_tuple_total = Total.objects.update_or_create(author=self.request.user, defaults={'total_amount': total_updated_amount,
                                                                                                  'total_amount_gained': total_updated_gained_amount})
             obj_tuple_total[0].save()
             obj_tuple = History.objects.update_or_create(month=month, year=year, author=self.request.user,
                                                          defaults={'monthly_amount_gained': updated_amount})
             obj_tuple[0].save()
-        elif transaction.t_type == "Withdrawal":
-            total_updated_amount = totalqueryset.first().total_amount + transaction.amount
+        elif transaction.t_type == "Expense":
+            total_updated_amount = totalqueryset.first().total_amount + \
+                transaction.d_amount
             total_updated_spent_amount = totalqueryset.first().total_amount_spent - \
-                transaction.amount
+                transaction.d_amount
 
             updated_amount = historyqueryset.first().monthly_amount_spent - \
-                transaction.amount
+                transaction.d_amount
             obj_tuple_total = Total.objects.update_or_create(author=self.request.user, defaults={'total_amount': total_updated_amount,
                                                                                                  'total_amount_spent': total_updated_spent_amount})
             obj_tuple_total[0].save()
@@ -312,7 +346,7 @@ class TotalCreateView(LoginRequiredMixin, CreateView):
     form_class = TotalForm
     template_name = 'budgeting/total_form.html'
 
-    def form_valid(self, form):  # sets the logged in user as the author of that transaction and sets the type when user clicks deposit/withdrawal
+    def form_valid(self, form):  # sets the logged in user as the author of that transaction and sets the type when user clicks Income/Expense
         form.instance.author = self.request.user
         return super().form_valid(form)
 

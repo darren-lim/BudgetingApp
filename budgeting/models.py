@@ -15,10 +15,11 @@ from django.urls import reverse
 
 
 class Transaction(models.Model):
-    t_type = models.CharField("Deposit/Withdrawal", max_length=15, null=True)
+    t_type = models.CharField("Expense/Withdrawal", max_length=15, null=True)
     category = models.CharField("Category", max_length=15, null=True)
     source = models.CharField("Title", max_length=30)
-    amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    d_amount = models.IntegerField(default=0)
     notes = models.TextField("Additional Information", blank=True, null=True)
     date_posted = models.DateField("Transaction Date (mm/dd/yyyy)",
                                    auto_now_add=False, auto_now=False, blank=False, null=True)
@@ -44,12 +45,9 @@ class Transaction(models.Model):
 class Total(models.Model):
     initial_amount = models.DecimalField("Initial Balance",
                                          max_digits=10, decimal_places=2, null=True)
-    total_amount = models.DecimalField(
-        max_digits=10, decimal_places=2, null=True)
-    total_amount_gained = models.DecimalField(
-        max_digits=10, decimal_places=2, null=True)
-    total_amount_spent = models.DecimalField(
-        max_digits=10, decimal_places=2, null=True)
+    total_amount = models.IntegerField(default=0)
+    total_amount_gained = models.IntegerField(default=0)
+    total_amount_spent = models.IntegerField(default=0)
 
     author = models.OneToOneField(User, on_delete=models.CASCADE)
 
@@ -64,14 +62,28 @@ class Total(models.Model):
 class History(models.Model):
     year = models.IntegerField(null=True)
     month = models.IntegerField(null=True)
-    monthly_amount_gained = models.DecimalField(
-        max_digits=10, decimal_places=2, null=True)
-    monthly_amount_spent = models.DecimalField(
-        max_digits=10, decimal_places=2, null=True)
+    monthly_amount_gained = models.IntegerField(default=0)
+    monthly_amount_spent = models.IntegerField(default=0)
     author = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
 
     def __str__(self):
         return "%s/%s" % (self.month, self.year)
+
+    def get_absolute_url(self):
+        # reverse will return the full path as a string so we can redirect to our budgeting-home template page
+        return reverse('budgeting-home')
+
+
+# for each of the expenses
+# each goal is a specific category
+class Categories(models.Model):
+    name = models.CharField(max_length=15)
+    author = models.ForeignKey(User, on_delete=models.CASCADE)
+    current_monthly_spent = models.IntegerField(null=True)
+    current_monthly_goal = models.IntegerField(null=True)
+
+    def __str__(self):
+        return self.name
 
     def get_absolute_url(self):
         # reverse will return the full path as a string so we can redirect to our budgeting-home template page
