@@ -46,9 +46,6 @@ class HomeView(ListView):
                     if historyqueryset.first() is not None and historyqueryset.first().monthly_amount_spent is not None:
                         amount_spent = historyqueryset.first().monthly_amount_spent + \
                             transaction.d_amount
-                        obj_tuple = History.objects.update_or_create(
-                            month=month, year=year, author=self.request.user, defaults={'monthly_amount_spent': amount_spent})
-                        obj_tuple[0].save()
                     else:
                         amount_spent = transaction.d_amount
                     obj_tuple = History.objects.update_or_create(
@@ -98,8 +95,8 @@ class HomeView(ListView):
                 currentqueryset = History.objects.filter(
                     author=self.request.user, year=current_year, month=current_month)
                 if currentqueryset.first() is None:
-                    monthly_gain = None
-                    monthly_spent = None
+                    monthly_gain = 0
+                    monthly_spent = 0
                 else:
                     monthly_gain = currentqueryset.first().monthly_amount_gained
                     monthly_spent = currentqueryset.first().monthly_amount_spent
@@ -132,12 +129,11 @@ class HomeView(ListView):
 
                 for key, value in expense_dict.items():
                     ExpenseLabels.append(key)
-                    ExpenseData.append(round(value, 2))
+                    ExpenseData.append(value)
 
                 for key, value in income_dict.items():
                     IncomeLabels.append(key)
-                    IncomeData.append(round(decimal.Decimal(value), 2))
-                    print(IncomeData)
+                    IncomeData.append(value)
 
                 if monthly_gain is None:
                     monthly_gain = 0
@@ -147,12 +143,22 @@ class HomeView(ListView):
                 # Category goals
                 # categoryDict = categoryQuerySet.aggregate(
                 # Sum('d_amount'))
-
+                # we still need to request the user's goals in a different view...
+                # also remember to divide output by 100 since we are storing amounts as ints.
                 categoryQuerySet = Transaction.objects.filter(
                     author=self.request.user, t_type='Expense', year=current_year, month=current_month)
+                categoryDict = dict()
                 for transaction in categoryQuerySet:
-                    if Cate
-
+                    category = transaction.category
+                    if category in categoryDict:
+                        categoryDict[category] += transaction.d_amount
+                    else:
+                        categoryDict[category] = transaction.d_amount
+                for category, monthly_amount in categoryDict.items():
+                    obj_tuple = Categories.objects.update_or_create(
+                        author=self.request.user, category=category, current_monthly_spent=monthly_amount)
+                    obj_tuple[0].save()
+                print(categoryDict)
                 return {'total': round(decimal.Decimal(total_amount)/100, 2),
                         'transaction_list': transqueryset2[:5],
                         'monthly_gain': round(decimal.Decimal(monthly_gain)/100, 2),
@@ -160,7 +166,8 @@ class HomeView(ListView):
                         'expense_labels': ExpenseLabels,
                         'expense_data': ExpenseData,
                         'income_labels': IncomeLabels,
-                        'income_data': IncomeData
+                        'income_data': IncomeData,
+                        'category_dict': categoryDict
                         }
 
             return {'total': round(decimal.Decimal(total_amount)/100, 2),
@@ -170,7 +177,8 @@ class HomeView(ListView):
                     'expense_labels': [],
                     'expense_data': [],
                     'income_labels': [],
-                    'income_data': []
+                    'income_data': [],
+                    'category_dict': {}
                     }
         return {'total': None,
                 'transaction_list': [],
@@ -179,7 +187,8 @@ class HomeView(ListView):
                 'expense_labels': [],
                 'expense_data': [],
                 'income_labels': [],
-                'income_data': []
+                'income_data': [],
+                'category_dict': {}
                 }
 
 
@@ -286,50 +295,81 @@ class TransUpdateView(LoginRequiredMixin, UpdateView):
         form.instance.d_amount = int(form.cleaned_data['amount'] * 100)
         return super().form_valid(form)
 
-    # def update(self, *args, **kwargs):
+    def update(self, *args, **kwargs):
+        #totalQuerySet = Total.objects.filer(author=self.request.user)
+        transaction = self.get_object()
+        year = transaction.year
+        month = transaction.month
+        # creating history queryset!
+        historyQuerySet = History.objects.filter(
+            author=self.request.user, year=year, month=month)
+        if transaction.t_type == 'Income':
+            # total_updated_amount = totalqueryset.first().total_amount - \
+            #     transaction.d_amount
+            # total_updated_gained_amount = totalqueryset.first().total_amount_gained - \
+            #     transaction.d_amount
+            updated_amount = historyQuerySet.first().monthly_amount_gained - \
+                transaction.d_amount
+            # obj_tuple_total = Total.objects.update_or_create(author=self.request.user, defaults={'total_amount': total_updated_amount,
+            #                                                                                      'total_amount_gained': total_updated_gained_amount})
+            # obj_tuple_total[0].save()
+            obj_tuple = History.objects.update_or_create(month=month, year=year, author=self.request.user,
+                                                         defaults={'monthly_amount_gained': updated_amount})
+            obj_tuple[0].save()
+        elif transaction.t_type == "Expense":
+            # total_updated_amount = totalqueryset.first().total_amount + \
+            #     transaction.d_amount
+            # total_updated_spent_amount = totalqueryset.first().total_amount_spent - \
+            #     transaction.d_amount
+            updated_amount = historyQuerySet.first().monthly_amount_spent - \
+                transaction.d_amount
+            # # obj_tuple_total = Total.objects.update_or_create(author=self.request.user, defaults={'total_amount': total_updated_amount,
+            #                                                                                      'total_amount_spent': total_updated_spent_amount})
+            # obj_tuple_total[0].save()
+            obj_tuple = History.objects.update_or_create(month=month, year=year, author=self.request.user,
+                                                         defaults={'monthly_amount_spent': updated_amount})
+            obj_tuple[0].save()
+
+        return super(TransUpdateView, self).update(*args, **kwargs)
 
 
 class TransDeleteView(LoginRequiredMixin, DeleteView):
     model = Transaction
     success_url = '/'  # goes to the homepage with all transactions.
+
     def delete(self, *args, **kwargs):
-
-        totalqueryset = Total.objects.filter(
-            author=self.request.user)
-
+        #totalqueryset=Total.objects.filter(author = self.request.user)
         transaction = self.get_object()
-        year = transaction.date_posted.year
-        month = transaction.date_posted.month
+        year = transaction.year
+        month = transaction.month
         # creating history queryset!
         historyqueryset = History.objects.filter(
             author=self.request.user, year=year, month=month)
         if transaction.t_type == 'Income':
-            total_updated_amount = totalqueryset.first().total_amount - \
-                transaction.d_amount
-            total_updated_gained_amount = totalqueryset.first().total_amount_gained - \
-                transaction.d_amount
-
+            # total_updated_amount = totalqueryset.first().total_amount - \
+            #     transaction.d_amount
+            # total_updated_gained_amount = totalqueryset.first().total_amount_gained - \
+            #     transaction.d_amount
             updated_amount = historyqueryset.first().monthly_amount_gained - \
                 transaction.d_amount
-            obj_tuple_total = Total.objects.update_or_create(author=self.request.user, defaults={'total_amount': total_updated_amount,
-                                                                                                 'total_amount_gained': total_updated_gained_amount})
-            obj_tuple_total[0].save()
+            # obj_tuple_total = Total.objects.update_or_create(author=self.request.user, defaults={'total_amount': total_updated_amount,
+            #                                                                                      'total_amount_gained': total_updated_gained_amount})
+            # obj_tuple_total[0].save()
             obj_tuple = History.objects.update_or_create(month=month, year=year, author=self.request.user,
                                                          defaults={'monthly_amount_gained': updated_amount})
             obj_tuple[0].save()
         elif transaction.t_type == "Expense":
-            total_updated_amount = totalqueryset.first().total_amount + \
-                transaction.d_amount
-            total_updated_spent_amount = totalqueryset.first().total_amount_spent - \
-                transaction.d_amount
-
+            # total_updated_amount = totalqueryset.first().total_amount + \
+            #     transaction.d_amount
+            # total_updated_spent_amount = totalqueryset.first().total_amount_spent - \
+            #     transaction.d_amount
             updated_amount = historyqueryset.first().monthly_amount_spent - \
                 transaction.d_amount
-            obj_tuple_total = Total.objects.update_or_create(author=self.request.user, defaults={'total_amount': total_updated_amount,
-                                                                                                 'total_amount_spent': total_updated_spent_amount})
-            obj_tuple_total[0].save()
+            # obj_tuple_total = Total.objects.update_or_create(author=self.request.user, defaults={'total_amount': total_updated_amount,
+            #                                                                                      'total_amount_spent': total_updated_spent_amount})
+            # obj_tuple_total[0].save()
             obj_tuple = History.objects.update_or_create(month=month, year=year, author=self.request.user,
-                                                         defaults={'monthly_amount_spent': total_updated_spent_amount})
+                                                         defaults={'monthly_amount_spent': updated_amount})
             obj_tuple[0].save()
 
         return super(TransDeleteView, self).delete(*args, **kwargs)

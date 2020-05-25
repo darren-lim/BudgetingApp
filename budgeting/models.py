@@ -77,13 +77,13 @@ class History(models.Model):
 # for each of the expenses
 # each goal is a specific category
 class Categories(models.Model):
-    name = models.CharField(max_length=15)
+    category = models.CharField(max_length=15)
     author = models.ForeignKey(User, on_delete=models.CASCADE)
-    current_monthly_spent = models.IntegerField(null=True)
-    current_monthly_goal = models.IntegerField(null=True)
+    current_monthly_spent = models.IntegerField(default=0)
+    current_monthly_goal = models.IntegerField(default=0)
 
     def __str__(self):
-        return self.name
+        return self.category
 
     def get_absolute_url(self):
         # reverse will return the full path as a string so we can redirect to our budgeting-home template page
