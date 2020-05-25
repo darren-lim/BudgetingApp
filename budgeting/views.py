@@ -8,7 +8,7 @@ from django.shortcuts import render
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.views.generic import (
     ListView, DetailView, CreateView, UpdateView, DeleteView)
-from .models import Transaction, Total, History
+from .models import Transaction, Total, History, Categories
 from .forms import TransactionForm, UpdateForm, TotalForm
 from django.db.models import Sum
 
@@ -132,16 +132,27 @@ class HomeView(ListView):
 
                 for key, value in expense_dict.items():
                     ExpenseLabels.append(key)
-                    ExpenseData.append(value)
+                    ExpenseData.append(round(value, 2))
 
                 for key, value in income_dict.items():
                     IncomeLabels.append(key)
-                    IncomeData.append(value)
+                    IncomeData.append(round(decimal.Decimal(value), 2))
+                    print(IncomeData)
 
                 if monthly_gain is None:
                     monthly_gain = 0
                 if monthly_spent is None:
                     monthly_spent = 0
+                '''-----------------------------------------------------------------'''
+                # Category goals
+                # categoryDict = categoryQuerySet.aggregate(
+                # Sum('d_amount'))
+
+                categoryQuerySet = Transaction.objects.filter(
+                    author=self.request.user, t_type='Expense', year=current_year, month=current_month)
+                for transaction in categoryQuerySet:
+                    if Cate
+
                 return {'total': round(decimal.Decimal(total_amount)/100, 2),
                         'transaction_list': transqueryset2[:5],
                         'monthly_gain': round(decimal.Decimal(monthly_gain)/100, 2),
@@ -244,6 +255,7 @@ class TransCreateView(LoginRequiredMixin, CreateView):
     def form_valid(self, form):  # sets the logged in user as the author of that transaction
         form.instance.author = self.request.user
         form.instance.t_type = self.kwargs['parameter']
+        # we set "amount"s value * 100 equal to the "d_amount" which is what we use to aggregate in the end.
         form.instance.d_amount = int(form.cleaned_data['amount'] * 100)
         return super().form_valid(form)
 
@@ -257,16 +269,24 @@ class TransUpdateView(LoginRequiredMixin, UpdateView):
     # if I leave out get_form() the object is successfully saved
     # but the user's choice is not limited
 
+    def dispatch(self, request, *args, **kwargs):
+        self.choices = EX_CHOICES
+        return super(TransUpdateView, self).dispatch(request, *args, **kwargs)
+
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         kwargs['user'] = self.request.user
         source = ('Job', 'Food', 'Gas')
         kwargs['source'] = source
+        kwargs['choices'] = self.choices
         return kwargs
 
     def form_valid(self, form):  # sets the logged in user as the author of that transaction
         form.instance.author = self.request.user
+        form.instance.d_amount = int(form.cleaned_data['amount'] * 100)
         return super().form_valid(form)
+
+    # def update(self, *args, **kwargs):
 
 
 class TransDeleteView(LoginRequiredMixin, DeleteView):
