@@ -1,6 +1,6 @@
 from django import forms
 from .fields import ListTextWidget
-from .models import Transaction, Total
+from .models import Transaction, Total, Categories
 
 
 class TransactionForm(forms.ModelForm):
@@ -15,9 +15,9 @@ class TransactionForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         _source_list = kwargs.pop('source', None)
         user = kwargs.pop('user', None)
-        choices = kwargs.pop('choices', None)
+        categories = kwargs.pop('choices', None)
         super(TransactionForm, self).__init__(*args, **kwargs)
-        self.fields['category'] = forms.ChoiceField(choices=choices)
+        self.fields['category'].queryset = categories
         # the "name" parameter will allow you to use the same widget more than once in the same
         # form, not setting this parameter differently will cuse all inputs display the
         # same list.
@@ -41,3 +41,10 @@ class TotalForm(forms.ModelForm):
     class Meta:
         model = Total
         fields = ['initial_amount']
+
+
+class CategoryForm(forms.ModelForm):
+
+    class Meta:
+        model = Categories
+        fields = ['category', 'current_monthly_goal', 'is_expense']

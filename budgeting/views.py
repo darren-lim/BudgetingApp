@@ -9,7 +9,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.views.generic import (
     ListView, DetailView, CreateView, UpdateView, DeleteView)
 from .models import Transaction, Total, History, Categories
-from .forms import TransactionForm, UpdateForm, TotalForm
+from .forms import TransactionForm, UpdateForm, TotalForm, CategoryForm
 from django.db.models import Sum
 
 
@@ -240,9 +240,9 @@ class TransCreateView(LoginRequiredMixin, CreateView):
 
     def dispatch(self, request, *args, **kwargs):
         if self.kwargs['parameter'] == "Income":
-            self.choices = IN_CHOICES
+            self.choices = Categories.objects.filter(author=request.user).filter(is_expense=False)
         elif self.kwargs['parameter'] == "Expense":
-            self.choices = EX_CHOICES
+            self.choices = Categories.objects.filter(author=request.user).filter(is_expense=True)
         return super(TransCreateView, self).dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
@@ -279,7 +279,7 @@ class TransUpdateView(LoginRequiredMixin, UpdateView):
     # but the user's choice is not limited
 
     def dispatch(self, request, *args, **kwargs):
-        self.choices = EX_CHOICES
+        #self.choices = EX_CHOICES
         return super(TransUpdateView, self).dispatch(request, *args, **kwargs)
 
     def get_form_kwargs(self):
@@ -287,7 +287,7 @@ class TransUpdateView(LoginRequiredMixin, UpdateView):
         kwargs['user'] = self.request.user
         source = ('Job', 'Food', 'Gas')
         kwargs['source'] = source
-        kwargs['choices'] = self.choices
+        #kwargs['choices'] = self.choices
         return kwargs
 
     def form_valid(self, form):  # sets the logged in user as the author of that transaction
@@ -390,6 +390,15 @@ class TotalCreateView(LoginRequiredMixin, CreateView):
         form.instance.author = self.request.user
         return super().form_valid(form)
 
+
+class CategoryCreateView(LoginRequiredMixin, CreateView):
+    model = Categories
+    form_class = CategoryForm
+    template_name = 'budgeting/category_form.html'
+
+    def form_valid(self, form):  # sets the logged in user as the author of that transaction and sets the type when user clicks Income/Expense
+        form.instance.author = self.request.user
+        return super().form_valid(form)
 
 def about(request):
     # in the 3rd paramter we pass in the title directly as a dictionary. This will pass into our about.html.

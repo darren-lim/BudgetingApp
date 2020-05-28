@@ -2,7 +2,8 @@ from django.urls import path
 from . import views
 from .views import (TransListView, TransDetailView,
                     TransCreateView, TransUpdateView,
-                    TransDeleteView, HomeView, TotalCreateView)
+                    TransDeleteView, HomeView, TotalCreateView,
+                    CategoryCreateView)
 
 
 urlpatterns = [
@@ -18,5 +19,7 @@ urlpatterns = [
          name='transaction-update'),
     path('transaction/<int:pk>/delete/', TransDeleteView.as_view(),
          name='transaction-delete'),
+    path('create_category/', CategoryCreateView.as_view(),
+         name='category-create'),
     path('about/', views.about, name='budgeting-about')
 ]
