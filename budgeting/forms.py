@@ -48,3 +48,13 @@ class CategoryForm(forms.ModelForm):
     class Meta:
         model = Categories
         fields = ['category', 'current_monthly_goal', 'is_expense']
+
+    def __init__(self, *args, **kwargs):
+        super(CategoryForm, self).__init__(*args, **kwargs)
+
+
+class CategoryUpdateForm(CategoryForm):
+
+    class Meta:
+        model = Categories
+        fields = ['current_monthly_goal']

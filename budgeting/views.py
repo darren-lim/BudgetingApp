@@ -9,7 +9,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.views.generic import (
     ListView, DetailView, CreateView, UpdateView, DeleteView)
 from .models import Transaction, Total, History, Categories
-from .forms import TransactionForm, UpdateForm, TotalForm, CategoryForm
+from .forms import TransactionForm, UpdateForm, TotalForm, CategoryForm, CategoryUpdateForm
 from django.db.models import Sum
 
 
@@ -214,23 +214,6 @@ class TransDetailView(DetailView):
     # we don't have to add the name of the template to search for b/c by default, our classes will look for template with this naming convention:
     # <app>/<model>_<viewtype>.html (as long as our templates are in a directory with budgeting (the name of our app), transaction, and the type, we are good)
 
-
-IN_CHOICES = (
-    ('Paycheck', 'PAYCHECK'),
-    ('Transfer', 'TRANSFER'),
-    ('Sugar Daddy Money', 'SUGAR DADDY MONEY'),
-    ('Other Income', 'OTHER INCOME'),
-)
-
-EX_CHOICES = (
-    ('Food', 'FOOD'),
-    ('Auto', 'AUTO'),
-    ('Entertainment', 'ENTERTAINMENT'),
-    ('Home', 'HOME'),
-    ('Personal', 'PERSONAL')
-)
-
-
 class TransCreateView(LoginRequiredMixin, CreateView):
     # source = ('Job', 'Food', 'Gas')
     model = Transaction
@@ -274,12 +257,16 @@ class TransUpdateView(LoginRequiredMixin, UpdateView):
     model = Transaction
     form_class = UpdateForm
     template_name = 'budgeting/transaction_update.html'
-
+    choices = None
     # if I leave out get_form() the object is successfully saved
     # but the user's choice is not limited
 
     def dispatch(self, request, *args, **kwargs):
-        #self.choices = EX_CHOICES
+        t_type = self.model.t_type
+        if t_type == "Income":
+            self.choices = Categories.objects.filter(author=request.user, is_expense=False)
+        else:
+            self.choices = Categories.objects.filter(author=request.user, is_expense=True)
         return super(TransUpdateView, self).dispatch(request, *args, **kwargs)
 
     def get_form_kwargs(self):
@@ -287,7 +274,7 @@ class TransUpdateView(LoginRequiredMixin, UpdateView):
         kwargs['user'] = self.request.user
         source = ('Job', 'Food', 'Gas')
         kwargs['source'] = source
-        #kwargs['choices'] = self.choices
+        kwargs['choices'] = self.choices
         return kwargs
 
     def form_valid(self, form):  # sets the logged in user as the author of that transaction
@@ -399,6 +386,58 @@ class CategoryCreateView(LoginRequiredMixin, CreateView):
     def form_valid(self, form):  # sets the logged in user as the author of that transaction and sets the type when user clicks Income/Expense
         form.instance.author = self.request.user
         return super().form_valid(form)
+
+
+class CategoryListView(ListView):
+    model = Categories
+    template_name = 'budgeting/category_details.html'
+    context_object_name = 'categories'
+    paginate_by = 15
+
+    def get_queryset(self):
+        if self.request.user.is_authenticated:
+            return self.model.objects.filter(author=self.request.user)
+        else:
+            raise Exception("Unauthorized Access, Please Log In")
+
+
+class CategoryUpdateView(LoginRequiredMixin, UpdateView):
+    model = Categories
+    form_class = CategoryUpdateForm
+    template_name = 'budgeting/category_update.html'
+    success_url = 'category_details/'
+
+    def dispatch(self, request, *args, **kwargs):
+        return super(CategoryUpdateView, self).dispatch(request, *args, **kwargs)
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        return kwargs
+
+    def form_valid(self, form):  # sets the logged in user as the author of that transaction
+        form.instance.author = self.request.user
+        return super().form_valid(form)
+
+    def update(self, *args, **kwargs):
+        return super(CategoryUpdateView, self).update(*args, **kwargs)
+
+
+class CategoryDeleteView(LoginRequiredMixin, DeleteView):
+    model = Categories
+    template_name = 'budgeting/category_confirm_delete.html'
+    success_url = '/'
+
+    def delete(self, *args, **kwargs):
+        '''
+        c = self.get_object().category
+        print(c)
+        transactionqueryset = Transaction.objects.filter(author=self.request.user, category=self.get_object().category)
+        for transaction in transactionqueryset:
+            transaction.category = None
+            transaction.save()
+        '''
+        return super(CategoryDeleteView, self).delete(*args, **kwargs)
+
 
 def about(request):
     # in the 3rd paramter we pass in the title directly as a dictionary. This will pass into our about.html.

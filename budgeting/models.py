@@ -32,7 +32,7 @@ class Categories(models.Model):
 
 
 class Transaction(models.Model):
-    t_type = models.CharField("Expense/Withdrawal", max_length=15, null=True)
+    t_type = models.CharField("Income/Expense", max_length=15, null=True)
     category = models.ForeignKey(Categories, on_delete=models.SET_NULL, null=True)
     source = models.CharField("Title", max_length=30)
     amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
