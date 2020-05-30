@@ -27,17 +27,17 @@
                             </h2>
                             {% if category.is_expense %}
                                 <h4 class="mr-4">
-                                    Monthly Goal: {{category.current_monthly_goal}}
+                                    Monthly Goal: {{category.monthly_goal}}
                                 </h4>
                                 <h4>
-                                    Spent: {{category.current_monthly_spent}}
+                                    Spent: {{category.monthly_amount}}
                                 </h4>
                             {% else %}
                                 <h4 class="mr-4">
-                                    Monthly Goal: {{category.current_monthly_goal}}
+                                    Monthly Goal: {{category.monthly_goal}}
                                 </h4>
                                 <h4>
-                                    Income: {{category.current_monthly_income}}
+                                    Income: {{category.monthly_amount}}
                                 </h4>
                             {% endif %}
                         </div>

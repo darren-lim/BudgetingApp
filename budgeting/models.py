@@ -20,11 +20,19 @@ class Categories(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE)
     current_monthly_spent = models.IntegerField(default=0)
     current_monthly_income = models.IntegerField(default=0)
-    current_monthly_goal = models.IntegerField(default=0, blank=True)
+    # for form
+    monthly_goal = models.DecimalField(max_digits=12, decimal_places=2, default=0, blank=True)
+    # monthly goal in int
+    int_monthly_goal = models.IntegerField(default=0)
+    # current spent/income for view
+    monthly_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     is_expense = models.BooleanField(default=True)
 
     def __str__(self):
         return self.category
+
+    def save(self, *args, **kwargs):
+        super(Categories, self).save(*args, **kwargs)
 
     def get_absolute_url(self):
         # reverse will return the full path as a string so we can redirect to our budgeting-home template page
