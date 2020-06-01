@@ -24,7 +24,7 @@ class Categories(models.Model):
     monthly_goal = models.DecimalField(max_digits=12, decimal_places=2, default=0, blank=True)
     # monthly goal in int
     int_monthly_goal = models.IntegerField(default=0)
-    # current spent/income for view
+    # current spent/income for view REPRESENTATION OF CURRENT_MONTHLY_SPENT/INCOME
     monthly_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     is_expense = models.BooleanField(default=True)
 

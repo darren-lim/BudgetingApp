@@ -144,22 +144,7 @@ class HomeView(ListView):
                 # Sum('d_amount'))
                 # we still need to request the user's goals in a different view...
                 # also remember to divide output by 100 since we are storing amounts as ints.
-                '''
-                categoryQuerySet = Transaction.objects.filter(
-                    author=self.request.user, t_type='Expense', year=current_year, month=current_month)
-                categoryDict = dict()
-                for transaction in categoryQuerySet:
-                    category = transaction.category
-                    if category in categoryDict:
-                        categoryDict[category] += transaction.d_amount
-                    else:
-                        categoryDict[category] = transaction.d_amount
-                for category, monthly_amount in categoryDict.items():
-                    obj_tuple = Categories.objects.update_or_create(
-                        author=self.request.user, category=category, current_monthly_spent=monthly_amount)
-                    obj_tuple[0].save()
-                print(categoryDict)
-                '''
+
                 return {'total': round(decimal.Decimal(total_amount)/100, 2),
                         'transaction_list': transqueryset2[:5],
                         'monthly_gain': round(decimal.Decimal(monthly_gain)/100, 2),
@@ -327,15 +312,8 @@ class TransUpdateView(LoginRequiredMixin, UpdateView):
         category = Categories.objects.get(
             author=self.request.user, category=transaction.category)
         if transaction.t_type == 'Income':
-            # total_updated_amount = totalqueryset.first().total_amount - \
-            #     transaction.d_amount
-            # total_updated_gained_amount = totalqueryset.first().total_amount_gained - \
-            #     transaction.d_amount
             updated_amount = historyQuerySet.first().monthly_amount_gained - \
                 transaction.d_amount
-            # obj_tuple_total = Total.objects.update_or_create(author=self.request.user, defaults={'total_amount': total_updated_amount,
-            #                                                                                      'total_amount_gained': total_updated_gained_amount})
-            # obj_tuple_total[0].save()
             obj_tuple = History.objects.update_or_create(month=month, year=year, author=self.request.user,
                                                          defaults={'monthly_amount_gained': updated_amount})
             obj_tuple[0].save()
@@ -348,15 +326,8 @@ class TransUpdateView(LoginRequiredMixin, UpdateView):
             category_tuple[0].save()
 
         elif transaction.t_type == "Expense":
-            # total_updated_amount = totalqueryset.first().total_amount + \
-            #     transaction.d_amount
-            # total_updated_spent_amount = totalqueryset.first().total_amount_spent - \
-            #     transaction.d_amount
             updated_amount = historyQuerySet.first().monthly_amount_spent - \
                 transaction.d_amount
-            # # obj_tuple_total = Total.objects.update_or_create(author=self.request.user, defaults={'total_amount': total_updated_amount,
-            #                                                                                      'total_amount_spent': total_updated_spent_amount})
-            # obj_tuple_total[0].save()
             obj_tuple = History.objects.update_or_create(month=month, year=year, author=self.request.user,
                                                          defaults={'monthly_amount_spent': updated_amount})
             obj_tuple[0].save()
@@ -376,7 +347,6 @@ class TransDeleteView(LoginRequiredMixin, DeleteView):
     success_url = '/'  # goes to the homepage with all transactions.
 
     def delete(self, *args, **kwargs):
-        #totalqueryset=Total.objects.filter(author = self.request.user)
         transaction = self.get_object()
         year = transaction.year
         month = transaction.month
@@ -386,15 +356,8 @@ class TransDeleteView(LoginRequiredMixin, DeleteView):
         historyqueryset = History.objects.filter(
             author=self.request.user, year=year, month=month)
         if transaction.t_type == 'Income':
-            # total_updated_amount = totalqueryset.first().total_amount - \
-            #     transaction.d_amount
-            # total_updated_gained_amount = totalqueryset.first().total_amount_gained - \
-            #     transaction.d_amount
             updated_amount = historyqueryset.first().monthly_amount_gained - \
                 transaction.d_amount
-            # obj_tuple_total = Total.objects.update_or_create(author=self.request.user, defaults={'total_amount': total_updated_amount,
-            #                                                                                      'total_amount_gained': total_updated_gained_amount})
-            # obj_tuple_total[0].save()
             obj_tuple = History.objects.update_or_create(month=month, year=year, author=self.request.user,
                                                          defaults={'monthly_amount_gained': updated_amount})
             obj_tuple[0].save()
@@ -407,15 +370,8 @@ class TransDeleteView(LoginRequiredMixin, DeleteView):
             category_tuple[0].save()
 
         elif transaction.t_type == "Expense":
-            # total_updated_amount = totalqueryset.first().total_amount + \
-            #     transaction.d_amount
-            # total_updated_spent_amount = totalqueryset.first().total_amount_spent - \
-            #     transaction.d_amount
             updated_amount = historyqueryset.first().monthly_amount_spent - \
                 transaction.d_amount
-            # obj_tuple_total = Total.objects.update_or_create(author=self.request.user, defaults={'total_amount': total_updated_amount,
-            #                                                                                      'total_amount_spent': total_updated_spent_amount})
-            # obj_tuple_total[0].save()
             obj_tuple = History.objects.update_or_create(month=month, year=year, author=self.request.user,
                                                          defaults={'monthly_amount_spent': updated_amount})
             obj_tuple[0].save()
@@ -428,12 +384,6 @@ class TransDeleteView(LoginRequiredMixin, DeleteView):
             category_tuple[0].save()
 
         return super(TransDeleteView, self).delete(*args, **kwargs)
-
-    '''def test_func(self): # prevents any other users from updating but this shouldn't happen in the first place because transactions are private (more for smth like twitter)
-        post = self.get_object()
-        if self.request.user == post.author:
-            return True
-        return False'''
 
 
 class TotalCreateView(LoginRequiredMixin, CreateView):
@@ -497,14 +447,6 @@ class CategoryDeleteView(LoginRequiredMixin, DeleteView):
     success_url = '/'
 
     def delete(self, *args, **kwargs):
-        '''
-        c = self.get_object().category
-        print(c)
-        transactionqueryset = Transaction.objects.filter(author=self.request.user, category=self.get_object().category)
-        for transaction in transactionqueryset:
-            transaction.category = None
-            transaction.save()
-        '''
         return super(CategoryDeleteView, self).delete(*args, **kwargs)
 
 
