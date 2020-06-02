@@ -268,7 +268,7 @@ class TransDeleteView(LoginRequiredMixin, DeleteView):
                                                                                                  'total_amount_spent': total_updated_spent_amount})
             obj_tuple_total[0].save()
             obj_tuple = History.objects.update_or_create(month=month, year=year, author=self.request.user,
-                                                         defaults={'monthly_amount_spent': total_updated_spent_amount})
+                                                         defaults={'monthly_amount_spent': updated_amount})
             obj_tuple[0].save()
 
         return super(TransDeleteView, self).delete(*args, **kwargs)
