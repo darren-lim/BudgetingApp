@@ -26,7 +26,7 @@
                             <h2>
                                 <a class="mr-2" href="{% url 'transaction-detail' transaction.id %}">{{transaction.source}}</a>
                             </h2>
-                            {% if transaction.t_type  == 'Withdrawal' %}
+                            {% if transaction.t_type  == 'Expenseal' %}
                                 <h2 style="color: red">
                                     - ${{ transaction.amount }}
                                 </h2>
@@ -66,8 +66,8 @@
                   <h3>Create A New Transaction</h3>
                   <p class='text-muted'>Add new transactions here.</p>
                     <ul class="list-group">
-                    <li class="list-group-item list-group-item-light"><a href="{% url 'transaction-create' parameter='Deposit' %}">Deposit</a></li>
-                      <li class="list-group-item list-group-item-light"><a href="{% url 'transaction-create' parameter='Withdraw' %}">Withdraw</a></li>
+                    <li class="list-group-item list-group-item-light"><a href="{% url 'transaction-create' parameter='Income' %}">Income</a></li>
+                      <li class="list-group-item list-group-item-light"><a href="{% url 'transaction-create' parameter='Expense' %}">Expense</a></li>
                     </ul>
                 </div>
             </div>

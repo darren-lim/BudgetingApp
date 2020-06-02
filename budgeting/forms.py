@@ -7,7 +7,7 @@ class TransactionForm(forms.ModelForm):
 
     class Meta:
         model = Transaction
-        fields = ['amount', 'source', 'date_posted', 'notes']
+        fields = ['source', 'amount', 'date_posted', 'notes']
         widgets = {
             'date_posted': forms.DateInput(format='%m/%d/%Y', attrs={'placeholder': 'e.g. 02/15/2020'}),
             'source': forms.TextInput(attrs={'placeholder': 'e.g. Part-time job, Utilities, Gas'})
@@ -21,15 +21,15 @@ class TransactionForm(forms.ModelForm):
         # the "name" parameter will allow you to use the same widget more than once in the same
         # form, not setting this parameter differently will cuse all inputs display the
         # same list.
-        self.fields['source'].widget = ListTextWidget(
-            data_list=_source_list, name='source')
+        #self.fields['source'].widget = ListTextWidget(
+        #    data_list=_source_list, name='source')
 
 
 class UpdateForm(TransactionForm):
 
     class Meta:
         model = Transaction
-        fields = ['t_type', 'amount', 'source', 'date_posted', 'notes']
+        fields = ['source', 'amount', 'date_posted', 'notes']
         widgets = {
             'date_posted': forms.DateInput(format='%m/%d/%Y', attrs={'placeholder': 'e.g. 02/15/2020'}),
             'source': forms.TextInput(attrs={'placeholder': 'e.g. Part-time job, Utilities, Gas'})

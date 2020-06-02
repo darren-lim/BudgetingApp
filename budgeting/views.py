@@ -31,7 +31,7 @@ class HomeView(ListView):
                 # creating history queryset!
                 historyqueryset = History.objects.filter(
                     author=self.request.user, year=year, month=month)
-                if transaction.t_type == 'Deposit':
+                if transaction.t_type == 'Income':
                     if historyqueryset.first() is not None and historyqueryset.first().monthly_amount_gained is not None:
                         amount_gained = historyqueryset.first().monthly_amount_gained + \
                             transaction.amount
@@ -40,7 +40,7 @@ class HomeView(ListView):
                     obj_tuple = History.objects.update_or_create(
                         month=month, year=year, author=self.request.user, defaults={'monthly_amount_gained': amount_gained})
                     obj_tuple[0].save()
-                elif transaction.t_type == "Withdrawal":
+                elif transaction.t_type == "Expense":
                     if historyqueryset.first() is not None and historyqueryset.first().monthly_amount_spent is not None:
                         amount_spent = historyqueryset.first().monthly_amount_spent + transaction.amount
                         obj_tuple = History.objects.update_or_create(
@@ -69,19 +69,19 @@ class HomeView(ListView):
                 historyqueryset2 = History.objects.all()
                 historydict1 = historyqueryset2.aggregate(
                     Sum('monthly_amount_gained'))
-                deposits = historydict1.get("monthly_amount_gained__sum")
+                Incomes = historydict1.get("monthly_amount_gained__sum")
                 historydict2 = historyqueryset2.aggregate(
                     Sum('monthly_amount_spent'))
-                withdrawals = historydict2.get("monthly_amount_spent__sum")
-                if deposits is not None and withdrawals is not None:
-                    total_amount -= withdrawals
-                    total_amount += deposits
+                Expenses = historydict2.get("monthly_amount_spent__sum")
+                if Incomes is not None and Expenses is not None:
+                    total_amount -= Expenses
+                    total_amount += Incomes
 
-                elif deposits is None and withdrawals is not None:
-                    total_amount -= withdrawals
+                elif Incomes is None and Expenses is not None:
+                    total_amount -= Expenses
 
-                elif deposits is not None and withdrawals is None:
-                    total_amount += deposits
+                elif Incomes is not None and Expenses is None:
+                    total_amount += Incomes
                 '''-----------------------------------------------------------------'''
                 # creating current year and month string
                 now = datetime.date.today()
@@ -97,7 +97,7 @@ class HomeView(ListView):
                     monthly_gain = currentqueryset.first().monthly_amount_gained
                     monthly_spent = currentqueryset.first().monthly_amount_spent
                 totalqueryset.update(
-                    total_amount=total_amount, total_amount_gained=deposits, total_amount_spent=withdrawals)
+                    total_amount=total_amount, total_amount_gained=Incomes, total_amount_spent=Expenses)
 
                 ExpenseLabels = []
                 ExpenseData = []
@@ -110,12 +110,12 @@ class HomeView(ListView):
                 piequeryset = Transaction.objects.filter(
                     author=self.request.user, year=current_year, month=current_month)
                 for transaction in piequeryset:
-                    if transaction.t_type == 'Withdrawal':
+                    if transaction.t_type == 'Expense':
                         if transaction.source in expenses:
                             expenses[transaction.source] += float(transaction.amount)
                         else:
                             expenses[transaction.source] = float(transaction.amount)
-                    elif transaction.t_type == 'Deposit':
+                    elif transaction.t_type == 'Income':
                         if transaction.source in income:
                             income[transaction.source] += float(transaction.amount)
                         else:
@@ -203,8 +203,6 @@ class TransCreateView(LoginRequiredMixin, CreateView):
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         kwargs['user'] = self.request.user
-        source = ('Job', 'Food', 'Gas')
-        kwargs['source'] = source
         return kwargs
 
     def form_valid(self, form):  # sets the logged in user as the author of that transaction
@@ -225,8 +223,6 @@ class TransUpdateView(LoginRequiredMixin, UpdateView):
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         kwargs['user'] = self.request.user
-        source = ('Job', 'Food', 'Gas')
-        kwargs['source'] = source
         return kwargs
 
     def form_valid(self, form):  # sets the logged in user as the author of that transaction
@@ -248,7 +244,7 @@ class TransDeleteView(LoginRequiredMixin, DeleteView):
         # creating history queryset!
         historyqueryset = History.objects.filter(
             author=self.request.user, year=year, month=month)
-        if transaction.t_type == 'Deposit':
+        if transaction.t_type == 'Income':
             total_updated_amount = totalqueryset.first().total_amount - transaction.amount
             total_updated_gained_amount = totalqueryset.first().total_amount_gained - \
                 transaction.amount
@@ -261,7 +257,7 @@ class TransDeleteView(LoginRequiredMixin, DeleteView):
             obj_tuple = History.objects.update_or_create(month=month, year=year, author=self.request.user,
                                                          defaults={'monthly_amount_gained': updated_amount})
             obj_tuple[0].save()
-        elif transaction.t_type == "Withdrawal":
+        elif transaction.t_type == "Expense":
             total_updated_amount = totalqueryset.first().total_amount + transaction.amount
             total_updated_spent_amount = totalqueryset.first().total_amount_spent - \
                 transaction.amount
@@ -289,7 +285,7 @@ class TotalCreateView(LoginRequiredMixin, CreateView):
     form_class = TotalForm
     template_name = 'budgeting/total_form.html'
 
-    def form_valid(self, form):  # sets the logged in user as the author of that transaction and sets the type when user clicks deposit/withdrawal
+    def form_valid(self, form):  # sets the logged in user as the author of that transaction and sets the type when user clicks Income/Expense
         form.instance.author = self.request.user
         return super().form_valid(form)
 

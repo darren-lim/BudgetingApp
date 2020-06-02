@@ -52,9 +52,9 @@
           </h4>
           <ul class="list-group">
             <li class="list-group-item list-group-item-light"><a
-                href="{% url 'transaction-create' parameter='Deposit' %}">Deposit</a></li>
+                href="{% url 'transaction-create' parameter='Income' %}">Income</a></li>
             <li class="list-group-item list-group-item-light"><a
-                href="{% url 'transaction-create' parameter='Withdrawal' %}">Withdraw</a></li>
+                href="{% url 'transaction-create' parameter='Expense' %}">Expense</a></li>
           </ul>
         </div>
     {% endif %}
@@ -108,7 +108,7 @@
             <h2>
                 <a class="mr-2" href="{% url 'transaction-detail' transaction.id %}">{{transaction.source}}</a>
             </h2>
-            {% if transaction.t_type  == 'Withdrawal' %}
+            {% if transaction.t_type  == 'Expense' %}
                 <h2 style="color: red">
                     - ${{ transaction.amount }}
                 </h2>
@@ -128,9 +128,9 @@
       <p class='text-muted'>Add new transactions here.</p>
       <ul class="list-group">
         <li class="list-group-item list-group-item-light"><a
-            href="{% url 'transaction-create' parameter='Deposit' %}">Deposit</a></li>
+            href="{% url 'transaction-create' parameter='Income' %}">Income</a></li>
         <li class="list-group-item list-group-item-light"><a
-            href="{% url 'transaction-create' parameter='Withdrawal' %}">Withdraw</a></li>
+            href="{% url 'transaction-create' parameter='Expense' %}">Expense</a></li>
       </ul>
     </div>
   </div>
@@ -139,34 +139,30 @@
 {% else %}
 <div class="row">
   <div class="col-md-8">
-    <article class="media content-section">
-      <div class="media-body">
-        <div class="article-metadata">
-          <h2>
-            Welcome to Treat Yo Self, a Budgeting Website for your Poor Ass Needs
-          </h2>
-        </div>
-        <p>Please Register or Log In to start.</p>
-      </div>
-    </article>
+    <div class="jumbotron">
+        <h2>
+          Welcome to Treat Yo Self, a Budgeting Website to track all of your money needs.
+        </h2>
+    </div>
+    <p>Please Register or Log In to start.</p>
   </div>
 </div>
 {% endif %}
 <script>
     Chart.defaults.global.legend.labels.usePointStyle = true;
-    const colorScaleExpense = d3.interpolateSinebow;
+    const colorScaleExpense = d3.interpolateReds;
     let dataLengthExpense = {{ total.expense_data| length }};
     const colorRangeInfo = {
-        colorStart: 0,
+        colorStart: 0.3,
         colorEnd: 1,
         useEndAsStart: false,
     };
     let COLORSEXPENSE = interpolateColors(dataLengthExpense, colorScaleExpense, colorRangeInfo);
 
-    const colorScaleIncome = d3.interpolateRainbow;
+    const colorScaleIncome = d3.interpolateGreens;
     let dataLengthIncome = {{ total.income_data| length }};
     const colorRangeInfo2 = {
-        colorStart: 0,
+        colorStart: 0.3,
         colorEnd: 1,
         useEndAsStart: false,
     };
@@ -186,7 +182,7 @@
             label: 'Money'
           }],
           labels: {{ total.expense_labels | safe }},
-          borderWidth: 1,
+
           },
         options: {
           legend: {
@@ -194,9 +190,9 @@
           },
           maintainAspectRatio: false,
           aspectRatio: 2.5,
-          cutoutPercentage: 70,
+          cutoutPercentage: 75,
           responsive: true,
-          title: "Expenses",
+          title: "This Month Expenses",
           amount: "${{total.monthly_spent}}",
           legendCallback: function(chart) {
               let text = [];
@@ -228,7 +224,7 @@
             label: 'Money'
           }],
           labels: {{ total.income_labels | safe }},
-          borderWidth: 1,
+
           },
         options: {
           legend: {
@@ -236,16 +232,16 @@
           },
           maintainAspectRatio: false,
           aspectRatio: 2.5,
-          cutoutPercentage: 70,
+          cutoutPercentage: 75,
           responsive: true,
-          title: "Income",
+          title: "This Month Income",
           amount: "${{total.monthly_gain}}",
           legendCallback: function(chart) {
             let text = [];
             text.push('<ul>');
             for (let i = 0; i < {{ total.income_labels | length }}; i++) {
                 text.push('<li style="color:' + chart.data.datasets[0].backgroundColor[i] + '">');
-                text.push('<span style="color: black; font-size: 14pt"">' + chart.data.labels[i] + '</span>');
+                text.push('<span style="color: black; font-size: 14pt">' + chart.data.labels[i] + '</span>');
                 text.push('</li>');
             }
             text.push('</ul>');
@@ -271,7 +267,7 @@
           textY = height / 2 - 25;
         ctx.fillText(title, textX, textY);
 
-        let font2Size = (height / 120).toFixed(2);
+        let font2Size = (height / 130).toFixed(2);
         ctx.font = font2Size + "em sans-serif";
         ctx.textBaseline = "top";
 

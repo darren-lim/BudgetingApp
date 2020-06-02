@@ -6,8 +6,7 @@ from django.urls import reverse
 class Transaction(models.Model):
     t_type = models.CharField("Deposit/Withdrawal", max_length=15, null=True)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
-    source = models.CharField(
-        "Source (Case Sensitive)", max_length=30)
+    source = models.CharField("Title", max_length=30)
     notes = models.TextField("Additional Information", blank=True, null=True)
     date_posted = models.DateField("Transaction Date (mm/dd/yyyy)",
                                    auto_now_add=False, auto_now=False, blank=False, null=True)
