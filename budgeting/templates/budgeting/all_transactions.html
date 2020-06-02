@@ -12,9 +12,9 @@
                 </h1>
             </div>
         </div>
-        <div class="row">
-            <div class="col-md-8">
-                {% if transactions != None %}
+        {% if transactions != None %}
+            <div class="row">
+                <div class="col-md-8">
                     {% for transaction in transactions %}
                     <article class="media content-section">
                       <div class="media-body">
@@ -59,8 +59,7 @@
                             <a class="btn btn-outline-info mb-4" href="?page={{ page_obj.paginator.num_pages }}">Last</a>
                         {% endif %}
                     {% endif %}
-                {% endif %}
-            </div>
+                </div>
             <div class="col-md-4">
                 <div class="content-section">
                   <h3>Create A New Transaction</h3>
@@ -71,6 +70,7 @@
                     </ul>
                 </div>
             </div>
-        </div>
+            </div>
+        {% endif %}
     {% endif %}
 {% endblock content %}
