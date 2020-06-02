@@ -1,1 +1,1 @@
-web: gunicorn budgetdeploy.wsgi
+web: gunicorn budgeting_project.wsgi
