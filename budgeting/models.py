@@ -23,7 +23,7 @@ class Transaction(models.Model):
 
     def get_absolute_url(self):
         # reverse will return the full path as a string so we can redirect to our transaction-detail template page for our newly created transaction
-        return reverse('/', kwargs={'pk': self.pk})
+        return reverse('', kwargs={'pk': self.pk})
 
     def add_type(self, typeName):
         self.t_type = typeName
