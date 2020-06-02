@@ -285,7 +285,11 @@ class TotalCreateView(LoginRequiredMixin, CreateView):
     template_name = 'budgeting/total_form.html'
 
     def get(self, request, *args, **kwargs):
-        total = Total.objects.get(author=request.user)
+        total = None
+        try:
+            total = Total.objects.get(author=request.user)
+        except Exception as e:
+            print(e)
         if total:
             form = TotalForm(instance=total)
         else:
@@ -300,9 +304,9 @@ class TotalCreateView(LoginRequiredMixin, CreateView):
             form = TotalForm(request.POST)
         if form.is_valid():
             total_obj = form.save(commit=False)
-            total_obj.user = request.user
+            total_obj.author = request.user
             total_obj.save()
-            return redirect('profile')
+            return redirect('budgeting-home')
         return render(request, self.template_name, {'form': form})
 
     def form_valid(self, form):  # sets the logged in user as the author of that transaction and sets the type when user clicks Income/Expense
