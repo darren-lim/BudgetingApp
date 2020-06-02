@@ -9,6 +9,8 @@ from django.views.generic import (
 from .models import Transaction, Total, History
 from .forms import TransactionForm, UpdateForm, TotalForm
 from django.db.models import Sum
+from django.shortcuts import redirect
+from django.contrib import messages
 
 
 class HomeView(ListView):
@@ -43,9 +45,6 @@ class HomeView(ListView):
                 elif transaction.t_type == "Expense":
                     if historyqueryset.first() is not None and historyqueryset.first().monthly_amount_spent is not None:
                         amount_spent = historyqueryset.first().monthly_amount_spent + transaction.amount
-                        obj_tuple = History.objects.update_or_create(
-                            month=month, year=year, author=self.request.user, defaults={'monthly_amount_spent': amount_spent})
-                        obj_tuple[0].save()
                     else:
                         amount_spent = transaction.amount
                     obj_tuple = History.objects.update_or_create(
@@ -284,6 +283,27 @@ class TotalCreateView(LoginRequiredMixin, CreateView):
     model = Total
     form_class = TotalForm
     template_name = 'budgeting/total_form.html'
+
+    def get(self, request, *args, **kwargs):
+        total = Total.objects.get(author=request.user)
+        if total:
+            form = TotalForm(instance=total)
+        else:
+            form = self.form_class(initial=self.initial)
+        return render(request, self.template_name, {'form': form})
+
+    def post(self, request, *args, **kwargs):
+        total = Total.objects.filter(author=request.user).first()
+        if total:
+            form = TotalForm(request.POST, instance=total)
+        else:
+            form = TotalForm(request.POST)
+        if form.is_valid():
+            total_obj = form.save(commit=False)
+            total_obj.user = request.user
+            total_obj.save()
+            return redirect('profile')
+        return render(request, self.template_name, {'form': form})
 
     def form_valid(self, form):  # sets the logged in user as the author of that transaction and sets the type when user clicks Income/Expense
         form.instance.author = self.request.user

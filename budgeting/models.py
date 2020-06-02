@@ -39,7 +39,7 @@ class Total(models.Model):
     total_amount_spent = models.DecimalField(
         max_digits=10, decimal_places=2, null=True)
 
-    author = models.OneToOneField(User, on_delete=models.CASCADE)
+    author = models.OneToOneField(User, on_delete=models.CASCADE, unique=True)
 
     def __str__(self):
         return str(self.author)
