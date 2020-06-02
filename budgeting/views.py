@@ -289,6 +289,9 @@ class TotalCreateView(LoginRequiredMixin, CreateView):
         form.instance.author = self.request.user
         return super().form_valid(form)
 
+def create_total(request):
+    return render(request, 'budgeting/create_total.html')
+
 
 def about(request):
     # in the 3rd paramter we pass in the title directly as a dictionary. This will pass into our about.html.
