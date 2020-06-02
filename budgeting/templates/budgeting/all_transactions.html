@@ -26,7 +26,7 @@
                             <h2>
                                 <a class="mr-2" href="{% url 'transaction-detail' transaction.id %}">{{transaction.source}}</a>
                             </h2>
-                            {% if transaction.t_type  == 'Expenseal' %}
+                            {% if transaction.t_type  == 'Expense' %}
                                 <h2 style="color: red">
                                     - ${{ transaction.amount }}
                                 </h2>
