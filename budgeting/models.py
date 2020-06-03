@@ -23,7 +23,7 @@ class Transaction(models.Model):
 
     def get_absolute_url(self):
         # reverse will return the full path as a string so we can redirect to our transaction-detail template page for our newly created transaction
-        return reverse('transaction-detail', kwargs={'pk': self.pk})
+        return reverse('budgeting-home')
 
     def add_type(self, typeName):
         self.t_type = typeName
@@ -39,7 +39,7 @@ class Total(models.Model):
     total_amount_spent = models.DecimalField(
         max_digits=10, decimal_places=2, null=True)
 
-    author = models.OneToOneField(User, on_delete=models.CASCADE)
+    author = models.OneToOneField(User, on_delete=models.CASCADE, unique=True)
 
     def __str__(self):
         return str(self.author)

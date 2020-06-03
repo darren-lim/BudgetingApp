@@ -2,6 +2,8 @@
 import datetime
 # very import import!! Allows us to return a rendered template.
 # Our views need to return an HttpResponse or exception.Render returns an HttpResponse in the background
+import decimal
+
 from django.shortcuts import render
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.views.generic import (
@@ -9,6 +11,8 @@ from django.views.generic import (
 from .models import Transaction, Total, History
 from .forms import TransactionForm, UpdateForm, TotalForm
 from django.db.models import Sum
+from django.shortcuts import redirect
+from django.contrib import messages
 
 
 class HomeView(ListView):
@@ -40,12 +44,9 @@ class HomeView(ListView):
                     obj_tuple = History.objects.update_or_create(
                         month=month, year=year, author=self.request.user, defaults={'monthly_amount_gained': amount_gained})
                     obj_tuple[0].save()
-                elif transaction.t_type == "Expense":
+                elif transaction.t_type == 'Expense':
                     if historyqueryset.first() is not None and historyqueryset.first().monthly_amount_spent is not None:
                         amount_spent = historyqueryset.first().monthly_amount_spent + transaction.amount
-                        obj_tuple = History.objects.update_or_create(
-                            month=month, year=year, author=self.request.user, defaults={'monthly_amount_spent': amount_spent})
-                        obj_tuple[0].save()
                     else:
                         amount_spent = transaction.amount
                     obj_tuple = History.objects.update_or_create(
@@ -66,7 +67,8 @@ class HomeView(ListView):
             transdict = transqueryset2.aggregate(Sum('amount'))
 
             if transdict.get('amount__sum') is not None:
-                historyqueryset2 = History.objects.all()
+                historyqueryset2 = History.objects.filter(
+                    author=self.request.user)
                 historydict1 = historyqueryset2.aggregate(
                     Sum('monthly_amount_gained'))
                 Incomes = historydict1.get("monthly_amount_gained__sum")
@@ -82,6 +84,9 @@ class HomeView(ListView):
 
                 elif Incomes is not None and Expenses is None:
                     total_amount += Incomes
+                total_amount = round(total_amount, 2)
+                totalqueryset.update(
+                    total_amount=total_amount, total_amount_gained=Incomes, total_amount_spent=Expenses)
                 '''-----------------------------------------------------------------'''
                 # creating current year and month string
                 now = datetime.date.today()
@@ -96,8 +101,6 @@ class HomeView(ListView):
                 else:
                     monthly_gain = currentqueryset.first().monthly_amount_gained
                     monthly_spent = currentqueryset.first().monthly_amount_spent
-                totalqueryset.update(
-                    total_amount=total_amount, total_amount_gained=Incomes, total_amount_spent=Expenses)
 
                 ExpenseLabels = []
                 ExpenseData = []
@@ -268,7 +271,7 @@ class TransDeleteView(LoginRequiredMixin, DeleteView):
                                                                                                  'total_amount_spent': total_updated_spent_amount})
             obj_tuple_total[0].save()
             obj_tuple = History.objects.update_or_create(month=month, year=year, author=self.request.user,
-                                                         defaults={'monthly_amount_spent': total_updated_spent_amount})
+                                                         defaults={'monthly_amount_spent': updated_amount})
             obj_tuple[0].save()
 
         return super(TransDeleteView, self).delete(*args, **kwargs)
@@ -285,12 +288,34 @@ class TotalCreateView(LoginRequiredMixin, CreateView):
     form_class = TotalForm
     template_name = 'budgeting/total_form.html'
 
+    def get(self, request, *args, **kwargs):
+        total = None
+        try:
+            total = Total.objects.get(author=request.user)
+        except Exception as e:
+            print(e)
+        if total:
+            form = TotalForm(instance=total)
+        else:
+            form = self.form_class(initial=self.initial)
+        return render(request, self.template_name, {'form': form})
+
+    def post(self, request, *args, **kwargs):
+        total = Total.objects.filter(author=request.user).first()
+        if total:
+            form = TotalForm(request.POST, instance=total)
+        else:
+            form = TotalForm(request.POST)
+        if form.is_valid():
+            total_obj = form.save(commit=False)
+            total_obj.author = request.user
+            total_obj.save()
+            return redirect('budgeting-home')
+        return render(request, self.template_name, {'form': form})
+
     def form_valid(self, form):  # sets the logged in user as the author of that transaction and sets the type when user clicks Income/Expense
         form.instance.author = self.request.user
         return super().form_valid(form)
-
-def create_total(request):
-    return render(request, 'budgeting/create_total.html')
 
 
 def about(request):
