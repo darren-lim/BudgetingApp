@@ -2,6 +2,8 @@
 import datetime
 # very import import!! Allows us to return a rendered template.
 # Our views need to return an HttpResponse or exception.Render returns an HttpResponse in the background
+import decimal
+
 from django.shortcuts import render
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.views.generic import (
@@ -42,7 +44,7 @@ class HomeView(ListView):
                     obj_tuple = History.objects.update_or_create(
                         month=month, year=year, author=self.request.user, defaults={'monthly_amount_gained': amount_gained})
                     obj_tuple[0].save()
-                elif transaction.t_type == "Expense":
+                elif transaction.t_type == 'Expense':
                     if historyqueryset.first() is not None and historyqueryset.first().monthly_amount_spent is not None:
                         amount_spent = historyqueryset.first().monthly_amount_spent + transaction.amount
                     else:
@@ -65,7 +67,8 @@ class HomeView(ListView):
             transdict = transqueryset2.aggregate(Sum('amount'))
 
             if transdict.get('amount__sum') is not None:
-                historyqueryset2 = History.objects.all()
+                historyqueryset2 = History.objects.filter(
+                    author=self.request.user)
                 historydict1 = historyqueryset2.aggregate(
                     Sum('monthly_amount_gained'))
                 Incomes = historydict1.get("monthly_amount_gained__sum")
@@ -81,6 +84,9 @@ class HomeView(ListView):
 
                 elif Incomes is not None and Expenses is None:
                     total_amount += Incomes
+                total_amount = round(total_amount, 2)
+                totalqueryset.update(
+                    total_amount=total_amount, total_amount_gained=Incomes, total_amount_spent=Expenses)
                 '''-----------------------------------------------------------------'''
                 # creating current year and month string
                 now = datetime.date.today()
@@ -95,8 +101,6 @@ class HomeView(ListView):
                 else:
                     monthly_gain = currentqueryset.first().monthly_amount_gained
                     monthly_spent = currentqueryset.first().monthly_amount_spent
-                totalqueryset.update(
-                    total_amount=total_amount, total_amount_gained=Incomes, total_amount_spent=Expenses)
 
                 ExpenseLabels = []
                 ExpenseData = []
