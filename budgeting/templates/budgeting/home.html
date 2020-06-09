@@ -1,5 +1,6 @@
 {% extends "budgeting/base.html" %}
 <!-- ^ Uses the base template (base.html)-->
+{% load static %}
 {% block content %}
 
 {% if user.is_authenticated %}
@@ -112,15 +113,34 @@
 {% endif %}
 {% else %}
 <div class="row">
-  <div class="col-md-8">
+  <div class="col-md text-center">
     <div class="jumbotron">
         <h2>
-          Welcome to Treat Yo Self, a Budgeting Website to track all of your money needs.
+          Welcome to Treat Yo Self
+        </h2>
+        <h2>
+            A Budgeting Website to track all of your money needs.
         </h2>
     </div>
-    <p>Please Register or Log In to start.</p>
+    <button class="btn btn-outline-success btn-started"><a href="{% url 'register' %}">Get started</a></button>
   </div>
 </div>
+<br>
+<br>
+<section class="demo-section">
+  <img class="front-img" src="{% static 'images/treatyoself1.PNG' %}" alt="1"/>
+  <h4 class="demo-text">
+      Have an easy to read layout of your current budget, monthly expenses, and recent transactions.
+  </h4>
+</section>
+<br>
+<br>
+<section class="demo-section">
+    <h4 class="demo-text">
+      Fully customize your transactions to the name and down to any notes about the transaction.
+  </h4>
+  <img class="front-img" src="{% static 'images/treatyoself2.PNG' %}" alt="2"/>
+</section>
 {% endif %}
 <script>
     Chart.defaults.global.legend.labels.usePointStyle = true;

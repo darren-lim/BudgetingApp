@@ -97,4 +97,25 @@ a.article-title:hover {
   justify-content: space-between;
 }
 
+.demo-section{
+  display: flex;
+  justify-content: center;
+  align-content: space-between;
+  margin: 2rem;
+}
+
+.front-img {
+  padding: 1rem;
+  height: 45vh;
+  width: auto;
+}
+
+.demo-text {
+  padding: 5rem;
+}
+
+.btn-started {
+  font-size: 2rem;
+}
+
 
