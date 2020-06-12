@@ -11,6 +11,8 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 """
 
 import os
+import urllib.parse
+
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -31,15 +33,26 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
-    'budgeting.apps.BudgetingConfig',
-    'users.apps.UsersConfig',
-    'crispy_forms',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    'crispy_forms',
+
+
+    #Django use these apps
+    'budgeting.apps.BudgetingConfig',
+    'users.apps.UsersConfig',
+    'leads.apps.LeadsConfig',
+    'frontend', #enables frontend app
+
+    #Necessary for Django rest Framework
+    'rest_framework',
+    'knox' #User authentification (Token Auth)
+    
 ]
 
 MIDDLEWARE = [
@@ -77,9 +90,14 @@ WSGI_APPLICATION = 'budgeting_project.wsgi.application'
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
 
 DATABASES = {
+    #'HOST': 'mongodb+srv://burger:burgercheese@treatyoself-8nrgu.mongodb.net/test?retryWrites=true&w=majority',
+
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE':   'djongo',
+        'NAME':     'TreatYoSelf',
+        'CLIENT': {
+            'host': "mongodb+srv://burger:burgercheese@treatyoself-8nrgu.mongodb.net/test?retryWrites=true&w=majority"
+        },
     }
 }
 
@@ -137,3 +155,20 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = os.environ.get('EMAIL_USER')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_PASSWORD')
+
+
+
+
+REST_FRAMEWORK = {
+    # Use Django's standard `django.contrib.auth` permissions,
+    # or allow read-only access for unauthenticated users.
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
+    ],
+    'DEFAULT_AUTHENTICATION_CLASSES': ('knox.auth.TokenAuthentication',),
+
+    'DEFAULT_PARSER_CLASSES': [
+        'rest_framework.parsers.JSONParser',
+    ],
+    
+}

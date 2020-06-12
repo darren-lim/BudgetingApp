@@ -1,23 +1,26 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <!-- Required meta tags -->
-    <meta charset="utf-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1, shrink-to-fit=no"
-    />
 
-    <!-- Bootstrap CSS -->
-    <link
-      rel="stylesheet"
-      href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
-      integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
-      crossorigin="anonymous"
-    />
+<head>
+  <!-- Required meta tags -->
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
 
-    <link rel="stylesheet"  href="{% static 'blog/main.css'%}">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.min.js"></script>
+  <!-- Import D3 Scale Chromatic via CDN -->
+  <script src="https://d3js.org/d3-color.v1.min.js"></script>
+  <script src="https://d3js.org/d3-interpolate.v1.min.js"></script>
+  <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
+  <script src="../../static/utils/chartjs-plugin-doughnutlabel.min.js"></script>
+
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+    integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous" />
+
+  <link rel="stylesheet"  href="{% static 'blog/main.css'%}">
+
+  <script src="../../static/utils/color_generator.js"></script>
 
     {% if title %}
     <title>Treat Yo Self- {{title}}</title>
@@ -26,10 +29,57 @@
     {% endif %}
   </head>
   <!-- end of head -->
-  <body>
+  <body style="margin-top: 2%">
       <!-- added a navigation bar -->
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-md"></div>
+      <div class="col-sm">
+        <div class="row container">
+          <a class="mr-4" href="/">Treat Yo Self</a>
+        </div>
+        <div class="row container">
+            <h1>balance here</h1>
+            {% block balance %}{% endblock %}
+        </div>
+        <div class="row container">
+          <div class="list-group borderless">
+              {% if user.is_authenticated %}
+                <a class="nav-item nav-link" href="{% url 'budgeting-home'%}">Home</a>
+                <a class="nav-item nav-link" href="{% url 'transaction-create' parameter='Deposit' %}">Deposit</a>
+                <a class="nav-item nav-link" href="{% url 'transaction-create' parameter='Withdraw' %}">Withdraw</a>
+                <a class="nav-item nav-link" href="{% url 'all-transactions'%}">All-Transactions</a>
+              {% endif %}
+          </div>
+        </div>
+      </div>
+      <div class="col-md">
+        <!-- this block is called content (name we chose)-->
+        <!-- div gives us some nice spacing/margin padding-->
+        <main role="main" class="container">
+            <!-- Main Transaction list -->
+            {% block content %}{% endblock content%}
+        </main>
+      </div>
+      <div class="col-sm">
+        <div class="row container">
+          <div class="list-group borderless">
+              {% if user.is_authenticated %}
+                <a class="nav-item nav-link" href="{% url 'profile' %}">Profile</a>
+                <a class="nav-item nav-link" href="{% url 'logout' %}">Logout</a>
+              {% else %}
+                <a class="nav-item nav-link" href="{% url 'login' %}">Login</a>
+                <a class="nav-item nav-link" href="{% url 'register' %}">Register</a>
+              {% endif %}
+          </div>
+        </div>
+      </div>
+      <div class="col-md"></div>
+    </div>
+  </div>
+<!--
     <header class="site-header">
-      <nav class="navbar navbar-expand-md navbar-dark bg-steel fixed-top">
+      <nav class="navbar navbar-expand-md navbar-dark bg-steel">
         <div class="container">
           <a class="navbar-brand mr-4" href="/">Treat Yo Self</a>
           <button
@@ -45,36 +95,28 @@
           </button>
           <div class="collapse navbar-collapse" id="navbarToggle">
             <div class="navbar-nav mr-auto">
-                <!--we take the name of the urls in the urls.py module-->
               <a class="nav-item nav-link" href="{% url 'budgeting-home'%}">Home</a>
               <a class="nav-item nav-link" href="{% url 'budgeting-about'%}">About</a>
                 {% if user.is_authenticated %}
-                    <a class="nav-item nav-link" href="{% url 'budgeting-about'%}">Transactions</a>
-                    <a class="nav-item nav-link" href="{% url 'budgeting-about'%}"></a>
+                    <a class="nav-item nav-link" href="{% url 'all-transactions'%}">All-Transactions</a>
                 {% endif %}
             </div>
-            <!-- Navbar Right Side -->
             <div class="navbar-nav">
               {% if user.is_authenticated %}
-                    <a class="nav-item nav-link" href="{% url 'profile' %}">Profile</a>
-                    <a class="nav-item nav-link" href="{% url 'logout' %}">Logout</a>
-                {% else %}
-                    <a class="nav-item nav-link" href="{% url 'login' %}">Login</a>
-                    <a class="nav-item nav-link" href="{% url 'register' %}">Register</a>
-                {% endif %}
+                <a class="nav-item nav-link" href="{% url 'transaction-create' parameter='Deposit' %}">Deposit</a>
+                <a class="nav-item nav-link" href="{% url 'transaction-create' parameter='Withdraw' %}">Withdraw</a>
+                <a class="nav-item nav-link" href="{% url 'profile' %}">Profile</a>
+                <a class="nav-item nav-link" href="{% url 'logout' %}">Logout</a>
+              {% else %}
+                <a class="nav-item nav-link" href="{% url 'login' %}">Login</a>
+                <a class="nav-item nav-link" href="{% url 'register' %}">Register</a>
+              {% endif %}
             </div>
           </div>
         </div>
-      </nav>
-    </header>
-
-    <!-- this block is called content (name we chose)-->
-    <!-- div gives us some nice spacing/margin padding-->
-    <main role="main" class="container">
-        <!-- Main Transaction list -->
-        {% block content %}{% endblock content%}
-    </main>
-
+    </nav>
+  </header>
+-->
     <!-- Optional JavaScript -->
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
     <script
