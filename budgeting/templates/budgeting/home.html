@@ -7,14 +7,14 @@
 <!-- PLEASE CHANGE THE BACKGROUND COLOR OMG SO BAD -->
 
     {% if total.total == None %}
-      <div class="jumbotron container-fluid text-center" style="padding-top: 2%;padding-bottom: 2%;">
+      <div class="jumbotron container-fluid text-center">
       <h1 class="display-2">
         Welcome To Treat Yo Self!
       </h1>
       </div>
       <h3 class="display-4 text-center"><a href="{% url 'total-create'%}">Enter your current balance</a></h3>
     {% else %}
-    <div class="jumbotron container-fluid text-center" style="padding-top: 2%;padding-bottom: 2%;">
+    <div class="jumbotron container text-center jumbo">
       <h3>Current Balance:</h3>
       <h3 class="display-2" style="color:black">${{total.total}}</h3>
     </div>
@@ -36,17 +36,7 @@
 {% else %}
 
 <div class="text-center">
-  <!--
-  {% if total.expense_data|length == 0 or total.expense_data == None %}
-  <div style="margin-left: 15%; margin-right: 15%; padding: 3%">
-    <h4 class="card" style="background-color: #d3ffdf; padding: 3%">
-      You have not spent any money (:
-    </h4>
-  </div>
-  {% else %}
-  {% endif %}
-  -->
-  <div class="container">
+  <div class="container" style="margin-top: 2rem;margin-bottom: 2rem;">
     <table style="margin-left:auto;margin-right:auto;">
         <tr>
             <td>
@@ -112,35 +102,26 @@
 </div>
 {% endif %}
 {% else %}
-<div class="row">
-  <div class="col-md text-center">
-    <div class="jumbotron">
-        <h2>
-          Welcome to Treat Yo Self
-        </h2>
-        <h2>
-            A Budgeting Website to track all of your money needs.
-        </h2>
-    </div>
-    <button class="btn btn-outline-success btn-started"><a href="{% url 'register' %}">Get started</a></button>
-  </div>
-</div>
-<br>
-<br>
-<section class="demo-section">
-  <img class="front-img" src="{% static 'images/treatyoself1.PNG' %}" alt="1"/>
-  <h4 class="demo-text">
-      Have an easy to read layout of your current budget, monthly expenses, and recent transactions.
-  </h4>
-</section>
-<br>
-<br>
-<section class="demo-section">
-    <h4 class="demo-text">
-      Fully customize your transactions to the name and down to any notes about the transaction.
-  </h4>
-  <img class="front-img" src="{% static 'images/treatyoself2.PNG' %}" alt="2"/>
-</section>
+    <section class="main-section">
+        <h1 class="main-header">Professional budgeting,
+            <br />
+            made <span style="color:#02C39A">simple.</span>
+        </h1>
+        <p class="landing-desc">A simple, but powerful budgeting tool for the casual spender</p>
+        <a href="{% url 'register' %}" class="get-started-link">Get Started Free</a>
+    </section>
+    <section class="demo-section">
+      <h4 class="demo-text" style="padding-right: 5%">
+          Have an easy to read layout of your current budget, monthly expenses, and recent transactions.
+      </h4>
+      <img class="front-img" src="{% static 'images/treatyoself1.PNG' %}" alt="HomeImg"/>
+    </section>
+    <section class="demo-section">
+      <img class="front-img" src="{% static 'images/treatyoself2.PNG' %}" alt="FormImg"/>
+        <h4 class="demo-text" style="padding-left: 5%">
+          Fully customize your transactions to the name and down to any notes about the transaction.
+      </h4>
+    </section>
 {% endif %}
 <script>
     Chart.defaults.global.legend.labels.usePointStyle = true;
