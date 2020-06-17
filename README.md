@@ -15,5 +15,5 @@ Python, Django, HTML, CSS, MongoDB, Git, Heroku
 Future plans: implementing React and Javascript
   
 ### How To Use
-There is a version where users can demo here:  
+Try it out here!
 https://treatyoselfapp.herokuapp.com/
