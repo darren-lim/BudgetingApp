@@ -129,24 +129,24 @@
 </div>
 {% endif %}
 <script>
-  Chart.defaults.global.legend.labels.usePointStyle = true;
-  const colorScaleExpense = d3.interpolateSinebow;
-  let dataLengthExpense = {{ total.expense_data| length }};
-  const colorRangeInfo = {
-    colorStart: 0,
-    colorEnd: 1,
-    useEndAsStart: false,
-  };
-  let COLORSEXPENSE = interpolateColors(dataLengthExpense, colorScaleExpense, colorRangeInfo);
+    Chart.defaults.global.legend.labels.usePointStyle = true;
+    const colorScaleExpense = d3.interpolateReds;
+    let dataLengthExpense = {{ total.expense_data| length }};
+    const colorRangeInfo = {
+        colorStart: 0.3,
+        colorEnd: 1,
+        useEndAsStart: false,
+    };
+    let COLORSEXPENSE = interpolateColors(dataLengthExpense, colorScaleExpense, colorRangeInfo);
 
-  const colorScaleIncome = d3.interpolateRainbow;
-  let dataLengthIncome = {{ total.income_data| length }};
-  const colorRangeInfo2 = {
-    colorStart: 0,
-    colorEnd: 1,
-    useEndAsStart: false,
-  };
-  let COLORSINCOME = interpolateColors(dataLengthIncome, colorScaleIncome, colorRangeInfo2);
+    const colorScaleIncome = d3.interpolateGreens;
+    let dataLengthIncome = {{ total.income_data| length }};
+    const colorRangeInfo2 = {
+        colorStart: 0.3,
+        colorEnd: 1,
+        useEndAsStart: false,
+    };
+    let COLORSINCOME = interpolateColors(dataLengthIncome, colorScaleIncome, colorRangeInfo2);
 
   /**
    * Expense Chart
