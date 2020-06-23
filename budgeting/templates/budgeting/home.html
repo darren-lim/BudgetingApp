@@ -26,7 +26,9 @@
           </li>
       </ul>
       </div>
-      <h3 class="display-4 text-center"><a href="{% url 'total-create'%}">Enter your current balance</a></h3>
+      <h3 class="enter-balance">
+          <a class="enter-balance-link" href="{% url 'total-create'%}">Enter your current balance</a>
+      </h3>
     {% else %}
     <div class="jumbotron container text-center jumbo">
       <h3>Current Balance:</h3>
@@ -151,24 +153,24 @@
     </section>
 {% endif %}
 <script>
-  Chart.defaults.global.legend.labels.usePointStyle = true;
-  const colorScaleExpense = d3.interpolateSinebow;
-  let dataLengthExpense = {{ total.expense_data| length }};
-  const colorRangeInfo = {
-    colorStart: 0,
-    colorEnd: 1,
-    useEndAsStart: false,
-  };
-  let COLORSEXPENSE = interpolateColors(dataLengthExpense, colorScaleExpense, colorRangeInfo);
+    Chart.defaults.global.legend.labels.usePointStyle = true;
+    const colorScaleExpense = d3.interpolateReds;
+    let dataLengthExpense = {{ total.expense_data| length }};
+    const colorRangeInfo = {
+        colorStart: 0.3,
+        colorEnd: 1,
+        useEndAsStart: false,
+    };
+    let COLORSEXPENSE = interpolateColors(dataLengthExpense, colorScaleExpense, colorRangeInfo);
 
-  const colorScaleIncome = d3.interpolateRainbow;
-  let dataLengthIncome = {{ total.income_data| length }};
-  const colorRangeInfo2 = {
-    colorStart: 0,
-    colorEnd: 1,
-    useEndAsStart: false,
-  };
-  let COLORSINCOME = interpolateColors(dataLengthIncome, colorScaleIncome, colorRangeInfo2);
+    const colorScaleIncome = d3.interpolateGreens;
+    let dataLengthIncome = {{ total.income_data| length }};
+    const colorRangeInfo2 = {
+        colorStart: 0.3,
+        colorEnd: 1,
+        useEndAsStart: false,
+    };
+    let COLORSINCOME = interpolateColors(dataLengthIncome, colorScaleIncome, colorRangeInfo2);
 
   /**
    * Expense Chart
@@ -194,7 +196,7 @@
       aspectRatio: 2.5,
         cutoutPercentage: 70,
           responsive: true,
-            title: "Expenses",
+            title: "Expenses this Month",
               amount: "${{total.monthly_spent}}",
                 legendCallback: function(chart) {
                   let text = [];
@@ -236,7 +238,7 @@
       aspectRatio: 2.5,
         cutoutPercentage: 70,
           responsive: true,
-            title: "Income",
+            title: "Income this Month",
               amount: "${{total.monthly_gain}}",
                 legendCallback: function(chart) {
                   let text = [];
