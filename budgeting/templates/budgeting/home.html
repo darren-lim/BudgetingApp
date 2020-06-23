@@ -6,10 +6,25 @@
 {% if user.is_authenticated %}
 <!-- PLEASE CHANGE THE BACKGROUND COLOR OMG SO BAD -->
     {% if total.total == None %}
-      <div class="jumbotron container-fluid text-center">
+      <div class="jumbotron container-fluid text-left">
       <h1 class="display-2">
         Welcome To Treat Yo Self!
       </h1>
+      <br>
+      <h3>
+          Here's how to get started:
+      </h3>
+      <ul>
+          <li>
+              Input your current balance.
+          </li>
+          <li>
+              Create new categories to organize your transactions.
+          </li>
+          <li>
+              Create transactions to get going!
+          </li>
+      </ul>
       </div>
       <h3 class="display-4 text-center"><a href="{% url 'total-create'%}">Enter your current balance</a></h3>
     {% else %}
@@ -20,9 +35,18 @@
     {% endif %}
     {% if total.transaction_list|length == 0 or total.transaction_list == None %}
         {% if total.total != None %}
-            <div class="jumbotron text-center" style="margin-left: 15%; margin-right: 15%; padding: 5%">
-              <h4 style="padding-bottom: 5%">
-                Create A Transaction!
+            <div class="jumbotron text-center" style="margin:10%">
+              <h4 style="padding-bottom: 2%">
+                Create Some Categories
+              </h4>
+              <ul class="list-group">
+                <li class="list-group-item list-group-item-light">
+                    <a href="{% url 'category-create' %}">Create Category</a>
+                </li>
+              </ul>
+                <br/>
+              <h4 style="padding-bottom: 2%">
+                Then Create Transactions!
               </h4>
               <ul class="list-group">
                 <li class="list-group-item list-group-item-light"><a
