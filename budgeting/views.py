@@ -8,8 +8,8 @@ from django.shortcuts import render
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.views.generic import (
     ListView, DetailView, CreateView, UpdateView, DeleteView)
-from .models import Transaction, Total, History
-from .forms import TransactionForm, UpdateForm, TotalForm
+from .models import Transaction, Total, History, Categories
+from .forms import TransactionForm, UpdateForm, TotalForm, CategoryForm, CategoryUpdateForm
 from django.db.models import Sum
 from django.shortcuts import redirect
 from django.contrib import messages
@@ -38,9 +38,9 @@ class HomeView(ListView):
                 if transaction.t_type == 'Income':
                     if historyqueryset.first() is not None and historyqueryset.first().monthly_amount_gained is not None:
                         amount_gained = historyqueryset.first().monthly_amount_gained + \
-                            transaction.amount
+                            transaction.d_amount
                     else:
-                        amount_gained = transaction.amount
+                        amount_gained = transaction.d_amount
                     obj_tuple = History.objects.update_or_create(
                         month=month, year=year, author=self.request.user, defaults={'monthly_amount_gained': amount_gained})
                     obj_tuple[0].save()
@@ -48,7 +48,7 @@ class HomeView(ListView):
                     if historyqueryset.first() is not None and historyqueryset.first().monthly_amount_spent is not None:
                         amount_spent = historyqueryset.first().monthly_amount_spent + transaction.amount
                     else:
-                        amount_spent = transaction.amount
+                        amount_spent = transaction.d_amount
                     obj_tuple = History.objects.update_or_create(
                         month=month, year=year, author=self.request.user, defaults={'monthly_amount_spent': amount_spent})
                     obj_tuple[0].save()
@@ -57,36 +57,35 @@ class HomeView(ListView):
                 obj_tuple_t[0].save()
 
             # setting total amount to user's current balance when they first started using the app (initial_amount)
-            total_amount = totalqueryset.first().initial_amount
-
+            total_amount = decimal.Decimal(
+                totalqueryset.first().initial_amount) * 100
+            total_amount = int(total_amount)
             # checking to see if there any existing transactions
             # if there are we have to update our totals database
             # if not, we just return the total_amount
             transqueryset2 = Transaction.objects.filter(
                 author=self.request.user).order_by('-date_posted')
-            transdict = transqueryset2.aggregate(Sum('amount'))
-
-            if transdict.get('amount__sum') is not None:
+            transdict = transqueryset2.aggregate(Sum('d_amount'))
+            if transdict.get('d_amount__sum') is not None:
                 historyqueryset2 = History.objects.filter(
                     author=self.request.user)
                 historydict1 = historyqueryset2.aggregate(
                     Sum('monthly_amount_gained'))
-                Incomes = historydict1.get("monthly_amount_gained__sum")
+                incomes = historydict1.get("monthly_amount_gained__sum")
                 historydict2 = historyqueryset2.aggregate(
                     Sum('monthly_amount_spent'))
-                Expenses = historydict2.get("monthly_amount_spent__sum")
-                if Incomes is not None and Expenses is not None:
-                    total_amount -= Expenses
-                    total_amount += Incomes
+                expenses = historydict2.get("monthly_amount_spent__sum")
+                if incomes is not None and expenses is not None:
+                    total_amount -= expenses
+                    total_amount += incomes
 
-                elif Incomes is None and Expenses is not None:
-                    total_amount -= Expenses
+                elif incomes is None and expenses is not None:
+                    total_amount -= expenses
 
-                elif Incomes is not None and Expenses is None:
-                    total_amount += Incomes
-                total_amount = round(total_amount, 2)
+                elif incomes is not None and expenses is None:
+                    total_amount += incomes
                 totalqueryset.update(
-                    total_amount=total_amount, total_amount_gained=Incomes, total_amount_spent=Expenses)
+                    total_amount=total_amount, total_amount_gained=incomes, total_amount_spent=expenses)
                 '''-----------------------------------------------------------------'''
                 # creating current year and month string
                 now = datetime.date.today()
@@ -96,39 +95,44 @@ class HomeView(ListView):
                 currentqueryset = History.objects.filter(
                     author=self.request.user, year=current_year, month=current_month)
                 if currentqueryset.first() is None:
-                    monthly_gain = None
-                    monthly_spent = None
+                    monthly_gain = 0
+                    monthly_spent = 0
                 else:
                     monthly_gain = currentqueryset.first().monthly_amount_gained
                     monthly_spent = currentqueryset.first().monthly_amount_spent
+
+                '''-----------------------------------------------------------------'''
 
                 ExpenseLabels = []
                 ExpenseData = []
                 IncomeLabels = []
                 IncomeData = []
 
-                expenses = dict()
-                income = dict()
+                expense_dict = dict()
+                income_dict = dict()
 
-                piequeryset = Transaction.objects.filter(
+                current_queryset = Transaction.objects.filter(
                     author=self.request.user, year=current_year, month=current_month)
-                for transaction in piequeryset:
-                    if transaction.t_type == 'Expense':
-                        if transaction.source in expenses:
-                            expenses[transaction.source] += float(transaction.amount)
-                        else:
-                            expenses[transaction.source] = float(transaction.amount)
-                    elif transaction.t_type == 'Income':
-                        if transaction.source in income:
-                            income[transaction.source] += float(transaction.amount)
-                        else:
-                            income[transaction.source] = float(transaction.amount)
 
-                for key, value in expenses.items():
+                for transaction in current_queryset:
+                    if transaction.t_type == 'Expense':
+                        if transaction.source in expense_dict:
+                            expense_dict[transaction.source] += float(transaction.d_amount)/100
+                        else:
+                            expense_dict[transaction.source] = float(transaction.d_amount)/100
+                    elif transaction.t_type == 'Income':
+                        if transaction.source in income_dict:
+                            income_dict[transaction.source] += float(
+                                transaction.d_amount)/100
+                        else:
+                            income_dict[transaction.source] = float(
+                                transaction.d_amount)/100
+
+                for key, value in expense_dict.items():
                     ExpenseLabels.append(key)
                     ExpenseData.append(value)
 
-                for key, value in income.items():
+                for key, value in income_dict.items():
                     IncomeLabels.append(key)
                     IncomeData.append(value)
 
@@ -136,24 +140,33 @@ class HomeView(ListView):
                     monthly_gain = 0
                 if monthly_spent is None:
                     monthly_spent = 0
-                return {'total': total_amount,
+                '''-----------------------------------------------------------------'''
+                # Category goals
+                # categoryDict = categoryQuerySet.aggregate(
+                # Sum('d_amount'))
+                # we still need to request the user's goals in a different view...
+                # also remember to divide output by 100 since we are storing amounts as ints.
+
+                return {'total': round(decimal.Decimal(total_amount)/100, 2),
                         'transaction_list': transqueryset2[:5],
-                        'monthly_gain': monthly_gain,
-                        'monthly_spent': monthly_spent,
+                        'monthly_gain': round(decimal.Decimal(monthly_gain)/100, 2),
+                        'monthly_spent': round(decimal.Decimal(monthly_spent)/100, 2),
                         'expense_labels': ExpenseLabels,
                         'expense_data': ExpenseData,
                         'income_labels': IncomeLabels,
-                        'income_data': IncomeData
+                        'income_data': IncomeData,
+                        # 'category_dict': categoryDict
                         }
 
-            return {'total': total_amount,
+            return {'total': round(decimal.Decimal(total_amount)/100, 2),
                     'transaction_list': [],
                     'monthly_gain': 0,
                     'monthly_spent': 0,
                     'expense_labels': [],
                     'expense_data': [],
                     'income_labels': [],
-                    'income_data': []
+                    'income_data': [],
+                    # 'category_dict': {}
                     }
         return {'total': None,
                 'transaction_list': [],
@@ -162,7 +175,8 @@ class HomeView(ListView):
                 'expense_labels': [],
                 'expense_data': [],
                 'income_labels': [],
-                'income_data': []
+                'income_data': [],
+                # 'category_dict': {}
                 }
 
 
@@ -194,6 +208,16 @@ class TransCreateView(LoginRequiredMixin, CreateView):
     model = Transaction
     form_class = TransactionForm
     template_name = 'budgeting/transaction_form.html'
+    choices = None
+
+    def dispatch(self, request, *args, **kwargs):
+        if self.kwargs['parameter'] == "Income":
+            self.choices = Categories.objects.filter(
+                author=request.user).filter(is_expense=False)
+        elif self.kwargs['parameter'] == "Expense":
+            self.choices = Categories.objects.filter(
+                author=request.user).filter(is_expense=True)
+        return super(TransCreateView, self).dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = super(TransCreateView, self).get_context_data(**kwargs)
@@ -206,11 +230,34 @@ class TransCreateView(LoginRequiredMixin, CreateView):
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         kwargs['user'] = self.request.user
+        kwargs['choices'] = self.choices
         return kwargs
 
     def form_valid(self, form):  # sets the logged in user as the author of that transaction
         form.instance.author = self.request.user
         form.instance.t_type = self.kwargs['parameter']
+        # we set "amount"s value * 100 equal to the "d_amount" which is what we use to aggregate in the end.
+        form.instance.d_amount = int(form.cleaned_data['amount'] * 100)
+
+        category = Categories.objects.get(
+            author=self.request.user, category=form.cleaned_data['category'])
+        if self.kwargs['parameter'] == "Income":
+            category.current_monthly_income += int(
+                form.cleaned_data['amount'] * 100)
+            category.monthly_amount = round(decimal.Decimal(
+                category.current_monthly_income)/100, 2)
+            category_tuple = Categories.objects.update_or_create(author=self.request.user, category=form.cleaned_data['category'],
+                                                                 defaults={'monthly_amount:': category.monthly_amount, 'current_monthly_income': category.current_monthly_income})
+            category_tuple[0].save()
+        else:
+            category.current_monthly_spent += int(
+                form.cleaned_data['amount'] * 100)
+            category.monthly_amount = round(decimal.Decimal(
+                category.current_monthly_spent) / 100, 2)
+            category_tuple = Categories.objects.update_or_create(author=self.request.user, category=form.cleaned_data['category'],
+                                                                 defaults={'monthly_amount:': category.monthly_amount, 'current_monthly_spent': category.current_monthly_spent})
+            category_tuple[0].save()
+
         return super().form_valid(form)
 
 
@@ -219,68 +266,122 @@ class TransUpdateView(LoginRequiredMixin, UpdateView):
     model = Transaction
     form_class = UpdateForm
     template_name = 'budgeting/transaction_update.html'
-
+    choices = None
+    pre_category = model.category
+    pre_amount = model.d_amount
     # if I leave out get_form() the object is successfully saved
     # but the user's choice is not limited
+
+    def dispatch(self, request, *args, **kwargs):
+        category = Categories.objects.get(
+            author=request.user, category=self.pre_category)
+        t_type = self.model.t_type
+        if t_type == "Income":
+            category.current_monthly_income -= self.pre_amount
+            category.save()
+            self.choices = Categories.objects.filter(
+                author=request.user, is_expense=False)
+        else:
+            category.current_monthly_spent -= self.pre_amount
+            category.save()
+            self.choices = Categories.objects.filter(
+                author=request.user, is_expense=True)
+        return super(TransUpdateView, self).dispatch(request, *args, **kwargs)
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         kwargs['user'] = self.request.user
+        kwargs['choices'] = self.choices
         return kwargs
 
     def form_valid(self, form):  # sets the logged in user as the author of that transaction
         form.instance.author = self.request.user
+        form.instance.d_amount = int(form.cleaned_data['amount'] * 100)
         return super().form_valid(form)
+
+    def update(self, *args, **kwargs):
+        #totalQuerySet = Total.objects.filer(author=self.request.user)
+        transaction = self.get_object()
+        year = transaction.year
+        month = transaction.month
+        # creating history queryset!
+        historyQuerySet = History.objects.filter(
+            author=self.request.user, year=year, month=month)
+        category = Categories.objects.get(
+            author=self.request.user, category=transaction.category)
+        if transaction.t_type == 'Income':
+            updated_amount = historyQuerySet.first().monthly_amount_gained - \
+                transaction.d_amount
+            obj_tuple = History.objects.update_or_create(month=month, year=year, author=self.request.user,
+                                                         defaults={'monthly_amount_gained': updated_amount})
+            obj_tuple[0].save()
+
+            category.current_monthly_income += transaction.d_amount
+            category.monthly_amount = round(decimal.Decimal(
+                category.current_monthly_income) / 100, 2)
+            category_tuple = Categories.objects.update_or_create(author=self.request.user, category=self.model.category,
+                                                                 defaults={'monthly_amount:': category.monthly_income, 'current_monthly_amount': category.current_monthly_amount})
+            category_tuple[0].save()
+
+        elif transaction.t_type == "Expense":
+            updated_amount = historyQuerySet.first().monthly_amount_spent - \
+                transaction.d_amount
+            obj_tuple = History.objects.update_or_create(month=month, year=year, author=self.request.user,
+                                                         defaults={'monthly_amount_spent': updated_amount})
+            obj_tuple[0].save()
+
+            category.current_monthly_spent += transaction.d_amount
+            category.monthly_amount = round(decimal.Decimal(
+                category.current_monthly_spent) / 100, 2)
+            category_tuple = Categories.objects.update_or_create(author=self.request.user, category=transaction.category,
+                                                                 defaults={'monthly_amount:': category.monthly_amount, 'current_monthly_spent': category.current_monthly_spent})
+            category_tuple[0].save()
+
+        return super(TransUpdateView, self).update(*args, **kwargs)
 
 
 class TransDeleteView(LoginRequiredMixin, DeleteView):
     model = Transaction
     success_url = '/'  # goes to the homepage with all transactions.
+
     def delete(self, *args, **kwargs):
-
-        totalqueryset = Total.objects.filter(
-            author=self.request.user)
-
         transaction = self.get_object()
-        year = transaction.date_posted.year
-        month = transaction.date_posted.month
+        year = transaction.year
+        month = transaction.month
         # creating history queryset!
+        category = Categories.objects.get(
+            author=self.request.user, category=transaction.category)
         historyqueryset = History.objects.filter(
             author=self.request.user, year=year, month=month)
         if transaction.t_type == 'Income':
-            total_updated_amount = totalqueryset.first().total_amount - transaction.amount
-            total_updated_gained_amount = totalqueryset.first().total_amount_gained - \
-                transaction.amount
 
             updated_amount = historyqueryset.first().monthly_amount_gained - \
-                transaction.amount
-            obj_tuple_total = Total.objects.update_or_create(author=self.request.user, defaults={'total_amount': total_updated_amount,
-                                                                                                 'total_amount_gained': total_updated_gained_amount})
-            obj_tuple_total[0].save()
+                transaction.d_amount
             obj_tuple = History.objects.update_or_create(month=month, year=year, author=self.request.user,
                                                          defaults={'monthly_amount_gained': updated_amount})
             obj_tuple[0].save()
-        elif transaction.t_type == "Expense":
-            total_updated_amount = totalqueryset.first().total_amount + transaction.amount
-            total_updated_spent_amount = totalqueryset.first().total_amount_spent - \
-                transaction.amount
+            category.current_monthly_income -= transaction.d_amount
+            category.monthly_amount = round(decimal.Decimal(
+                category.current_monthly_income) / 100, 2)
+            category_tuple = Categories.objects.update_or_create(author=self.request.user, category=self.model.category,
+                                                                 defaults={'monthly_amount:': category.monthly_amount, 'current_monthly_income': category.current_monthly_income})
+            category_tuple[0].save()
 
+        elif transaction.t_type == "Expense":
             updated_amount = historyqueryset.first().monthly_amount_spent - \
-                transaction.amount
-            obj_tuple_total = Total.objects.update_or_create(author=self.request.user, defaults={'total_amount': total_updated_amount,
-                                                                                                 'total_amount_spent': total_updated_spent_amount})
-            obj_tuple_total[0].save()
+                transaction.d_amount
             obj_tuple = History.objects.update_or_create(month=month, year=year, author=self.request.user,
                                                          defaults={'monthly_amount_spent': updated_amount})
             obj_tuple[0].save()
 
-        return super(TransDeleteView, self).delete(*args, **kwargs)
+            category.current_monthly_spent -= transaction.d_amount
+            category.monthly_amount = round(decimal.Decimal(
+                category.current_monthly_spent) / 100, 2)
+            category_tuple = Categories.objects.update_or_create(author=self.request.user, category=self.model.category,
+                                                                 defaults={'monthly_amount:': category.monthly_amount, 'current_monthly_spent': category.current_monthly_spent})
+            category_tuple[0].save()
 
-    '''def test_func(self): # prevents any other users from updating but this shouldn't happen in the first place because transactions are private (more for smth like twitter)
-        post = self.get_object()
-        if self.request.user == post.author:
-            return True
-        return False'''
+        return super(TransDeleteView, self).delete(*args, **kwargs)
 
 
 class TotalCreateView(LoginRequiredMixin, CreateView):
@@ -288,34 +389,63 @@ class TotalCreateView(LoginRequiredMixin, CreateView):
     form_class = TotalForm
     template_name = 'budgeting/total_form.html'
 
-    def get(self, request, *args, **kwargs):
-        total = None
-        try:
-            total = Total.objects.get(author=request.user)
-        except Exception as e:
-            print(e)
-        if total:
-            form = TotalForm(instance=total)
-        else:
-            form = self.form_class(initial=self.initial)
-        return render(request, self.template_name, {'form': form})
-
-    def post(self, request, *args, **kwargs):
-        total = Total.objects.filter(author=request.user).first()
-        if total:
-            form = TotalForm(request.POST, instance=total)
-        else:
-            form = TotalForm(request.POST)
-        if form.is_valid():
-            total_obj = form.save(commit=False)
-            total_obj.author = request.user
-            total_obj.save()
-            return redirect('budgeting-home')
-        return render(request, self.template_name, {'form': form})
-
     def form_valid(self, form):  # sets the logged in user as the author of that transaction and sets the type when user clicks Income/Expense
         form.instance.author = self.request.user
         return super().form_valid(form)
+
+
+class CategoryCreateView(LoginRequiredMixin, CreateView):
+    model = Categories
+    form_class = CategoryForm
+    template_name = 'budgeting/category_form.html'
+
+    def form_valid(self, form):  # sets the logged in user as the author of that transaction and sets the type when user clicks Income/Expense
+        form.instance.author = self.request.user
+        self.model.int_monthly_goal = form.cleaned_data["monthly_goal"]*100
+        return super().form_valid(form)
+
+
+class CategoryListView(ListView):
+    model = Categories
+    template_name = 'budgeting/category_details.html'
+    context_object_name = 'categories'
+    paginate_by = 15
+
+    def get_queryset(self):
+        if self.request.user.is_authenticated:
+            return self.model.objects.filter(author=self.request.user)
+
+
+class CategoryUpdateView(LoginRequiredMixin, UpdateView):
+    # only updates the monthly goal
+    model = Categories
+    form_class = CategoryUpdateForm
+    template_name = 'budgeting/category_update.html'
+    success_url = 'category_details/'
+
+    def dispatch(self, request, *args, **kwargs):
+        return super(CategoryUpdateView, self).dispatch(request, *args, **kwargs)
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        return kwargs
+
+    def form_valid(self, form):  # sets the logged in user as the author of that transaction
+        form.instance.author = self.request.user
+        self.model.int_monthly_goal = form.cleaned_data["monthly_goal"] * 100
+        return super().form_valid(form)
+
+    def update(self, *args, **kwargs):
+        return super(CategoryUpdateView, self).update(*args, **kwargs)
+
+
+class CategoryDeleteView(LoginRequiredMixin, DeleteView):
+    model = Categories
+    template_name = 'budgeting/category_confirm_delete.html'
+    success_url = '/'
+
+    def delete(self, *args, **kwargs):
+        return super(CategoryDeleteView, self).delete(*args, **kwargs)
 
 
 def about(request):

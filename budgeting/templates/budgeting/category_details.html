@@ -1,38 +1,44 @@
 {% extends "budgeting/base.html" %}
 <!-- ^ Uses the base template (base.html)-->
 {% block content %}
-<!-- This is a for loop-->
-<!-- double braces allows us to access a variable. We use dot syntax on python dictionary in html. -->
-
     {% if user.is_authenticated %}
         <div class="row">
             <div class="col-md-8 display-3">
                 <h1>
-                    All Transactions
+                    Categories
                 </h1>
             </div>
         </div>
-        {% if transactions.count != 0 %}
-            <div class="row">
-                <div class="col-md-8">
-                    {% for transaction in transactions %}
+        <div class="row">
+            <div class="col-md-8">
+                {% if categories != None %}
+                    {% for category in categories %}
                     <article class="media content-section">
                       <div class="media-body">
-                        <div id="HASH" class="article-metadata">
-                            <small class="text-muted">{{ transaction.date_posted|date:"F d, Y"}}</small>
-                            <span>{{transaction.t_type}}</span>
+                        <div class="article-metadata">
+                          <div>
+                            <a class="btn btn-secondary btn-sm mt-1 mb-1" href="{% url 'category-update' category.id %}">Update</a>
+                            <a class="btn btn-danger btn-sm mt-1 mb-1" href="{% url 'category-delete' category.id %}">Delete</a>
+                          </div>
                         </div>
                         <div id="HASH" class="article-title">
-                            <h2>
-                                <a class="mr-2" href="{% url 'transaction-detail' transaction.id %}">{{transaction.source}}</a>
-                            {% if transaction.t_type  == 'Expense' %}
-                                <h2 style="color: red">
-                                    - ${{ transaction.amount }}
-                                </h2>
+                            <h2 class="mr-2">
+                                {{category.category}}
+                            </h2>
+                            {% if category.is_expense %}
+                                <h4 class="mr-4">
+                                    Monthly Goal: {{category.monthly_goal}}
+                                </h4>
+                                <h4>
+                                    Spent: {{category.monthly_amount}}
+                                </h4>
                             {% else %}
-                                <h2 style="color:limegreen">
-                                    + ${{ transaction.amount }}
-                                </h2>
+                                <h4 class="mr-4">
+                                    Monthly Goal: {{category.monthly_goal}}
+                                </h4>
+                                <h4>
+                                    Income: {{category.monthly_amount}}
+                                </h4>
                             {% endif %}
                         </div>
                       </div>
@@ -58,18 +64,8 @@
                             <a class="btn btn-outline-info mb-4" href="?page={{ page_obj.paginator.num_pages }}">Last</a>
                         {% endif %}
                     {% endif %}
-                </div>
-            <div class="col-md-4">
-                <div class="content-section">
-                  <h3>Create A New Transaction</h3>
-                  <p class='text-muted'>Add new transactions here.</p>
-                    <ul class="list-group">
-                    <li class="list-group-item list-group-item-light"><a href="{% url 'transaction-create' parameter='Income' %}">Income</a></li>
-                      <li class="list-group-item list-group-item-light"><a href="{% url 'transaction-create' parameter='Expense' %}">Expense</a></li>
-                    </ul>
-                </div>
+                {% endif %}
             </div>
-            </div>
-        {% endif %}
+        </div>
     {% endif %}
 {% endblock content %}

@@ -8,23 +8,33 @@
 <article class="media content-section">
   <div class="media-body">
     <div class="article-metadata">
-      <a class="mr-2" href="#">{{ object.t_type }} from {{object.source}}</a>
-      <small class="text-muted">{{ object.date_posted|date:"F d, Y"}}</small>
       <div>
-        <a
-          class="btn btn-secondary btn-sm mt-1 mb-1"
-          href="{%url 'transaction-update' object.id %}"
-          >Update</a
-        >
-        <a
-          class="btn btn-danger btn-sm mt-1 mb-1"
-          href="{%url 'transaction-delete' object.id %}"
-          >Delete</a
-        >
+        <a class="btn btn-secondary btn-sm mt-1 mb-1" href="{% url 'transaction-update' object.id %}">Update</a>
+        <a class="btn btn-danger btn-sm mt-1 mb-1" href="{% url 'transaction-delete' object.id %}">Delete</a>
       </div>
     </div>
-    <h2 class="article-title">${{ object.amount }}</h2>
-    <p class="article-content">{{ object.notes }}</p>
-  </div>
+    <div id="HASH" class="article-metadata">
+      <small class="text-muted">{{ object.date_posted|date:"F d, Y"}}</small>
+      <span>{{transaction.t_type}}</span>
+    </div>
+    <div id="HASH" class="article-title">
+      <h2 class="mr-2">
+        {{transaction.source}}
+      </h2>
+      <h2 class="mr-4">
+          {{object.category}}
+      </h2>
+
+      {% if object.t_type  == 'Expense' %}
+      <h2 style="color: red">
+        - ${{ object.amount }}
+      </h2>
+      {% else %}
+      <h2 style="color:limegreen">
+        + ${{ object.amount }}
+      </h2>
+      {% endif %}
+      <p class="article-content">{{ object.notes }}</p>
+    </div>
 </article>
 {% endblock content %}
