@@ -44,7 +44,6 @@
           <div class="navbar-nav mr-auto">
             <!--we take the name of the urls in the urls.py module-->
             <a class="nav-item nav-link" href="{% url 'budgeting-home'%}">Home</a>
-            <a class="nav-item nav-link" href="{% url 'budgeting-about'%}">About</a>
             {% if user.is_authenticated %}
             <a class="nav-item nav-link" href="{% url 'all-transactions'%}">All-Transactions</a>
             <a class="nav-item nav-link" href="{% url 'category-details'%}">Categories</a>
@@ -53,9 +52,7 @@
           <!-- Navbar Right Side -->
           <div class="navbar-nav">
             {% if user.is_authenticated %}
-            <a class="nav-item nav-link" href="{% url 'category-create' %}">Create-Category</a>
-            <a class="nav-item nav-link" href="{% url 'transaction-create' parameter='Income' %}">Income</a>
-            <a class="nav-item nav-link" href="{% url 'transaction-create' parameter='Expense' %}">Expense</a>
+            <a class="nav-item nav-link" href="{% url 'category-create' %}">Create Category</a>
             <a class="nav-item nav-link" href="{% url 'profile' %}">Profile</a>
             <a class="nav-item nav-link" href="{% url 'logout' %}">Logout</a>
             {% else %}

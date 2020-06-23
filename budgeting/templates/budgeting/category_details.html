@@ -1,71 +1,73 @@
 {% extends "budgeting/base.html" %}
 <!-- ^ Uses the base template (base.html)-->
 {% block content %}
-    {% if user.is_authenticated %}
-        <div class="row">
-            <div class="col-md-8 display-3">
-                <h1>
-                    Categories
-                </h1>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-md-8">
-                {% if categories != None %}
-                    {% for category in categories %}
-                    <article class="media content-section">
-                      <div class="media-body">
-                        <div class="article-metadata">
-                          <div>
-                            <a class="btn btn-secondary btn-sm mt-1 mb-1" href="{% url 'category-update' category.id %}">Update</a>
-                            <a class="btn btn-danger btn-sm mt-1 mb-1" href="{% url 'category-delete' category.id %}">Delete</a>
-                          </div>
-                        </div>
-                        <div id="HASH" class="article-title">
-                            <h2 class="mr-2">
-                                {{category.category}}
-                            </h2>
-                            {% if category.is_expense %}
-                                <h4 class="mr-4">
-                                    Monthly Goal: {{category.monthly_goal}}
-                                </h4>
-                                <h4>
-                                    Spent: {{category.monthly_amount}}
-                                </h4>
-                            {% else %}
-                                <h4 class="mr-4">
-                                    Monthly Goal: {{category.monthly_goal}}
-                                </h4>
-                                <h4>
-                                    Income: {{category.monthly_amount}}
-                                </h4>
-                            {% endif %}
-                        </div>
-                      </div>
-                    </article>
-                    {% endfor %}
-                    {% if is_paginated %}
-                        {% if page_obj.has_previous %}
-                            <a class="btn btn-outline-info mb-4" href="?page=1">First</a>
-                            <a class="btn btn-outline-info mb-4" href="?page={{ page_obj.previous_page_number }}">Previous</a>
-                        {% endif %}
-
-                        {% for num in page_obj.paginator.page_range %}
-                            {% if page_obj.number == num %}
-                                <a class="btn btn-info mb-4" href="?page={{ num }}">{{ num }}</a>
-                            <!-- check if there are pages within 3 pages of current page-->
-                            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-                                <a class="btn btn-outline-info mb-4" href="?page={{ num }}">{{ num }}</a>
-                            {% endif %}
-                        {% endfor %}
-
-                        {% if page_obj.has_next %}
-                            <a class="btn btn-outline-info mb-4" href="?page={{ page_obj.next_page_number }}">Next</a>
-                            <a class="btn btn-outline-info mb-4" href="?page={{ page_obj.paginator.num_pages }}">Last</a>
-                        {% endif %}
+{% if user.is_authenticated %}
+<div class="row">
+    <div class="col-md-8 display-3">
+        <h1>
+            Categories
+        </h1>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-8">
+        {% if categories != None %}
+        {% for category in categories %}
+        <article class="media content-section">
+            <div class="media-body">
+                <div class="article-metadata">
+                    <div>
+                        <a class="btn btn-secondary btn-sm mt-1 mb-1"
+                            href="{% url 'category-update' category.id %}">Update</a>
+                        <a class="btn btn-danger btn-sm mt-1 mb-1"
+                            href="{% url 'category-delete' category.id %}">Delete</a>
+                    </div>
+                </div>
+                <div id="HASH" class="article-title">
+                    <h2 class="mr-2">
+                        {{category.category}}
+                    </h2>
+                    {% if category.is_expense %}
+                    <h4 class="mr-4">
+                        Monthly Goal: {{category.monthly_goal}}
+                    </h4>
+                    <h4>
+                        Spent: {{category.monthly_amount}}
+                    </h4>
+                    {% else %}
+                    <h4 class="mr-4">
+                        Monthly Goal: {{category.monthly_goal}}
+                    </h4>
+                    <h4>
+                        Income: {{category.monthly_amount}}
+                    </h4>
                     {% endif %}
-                {% endif %}
+                </div>
             </div>
-        </div>
-    {% endif %}
+        </article>
+        {% endfor %}
+        {% if is_paginated %}
+        {% if page_obj.has_previous %}
+        <a class="btn btn-outline-info mb-4" href="?page=1">First</a>
+        <a class="btn btn-outline-info mb-4" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+        {% endif %}
+
+        {% for num in page_obj.paginator.page_range %}
+        {% if page_obj.number == num %}
+        <a class="btn btn-info mb-4" href="?page={{ num }}">{{ num }}</a>
+        <!-- check if there are pages within 3 pages of current page-->
+        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+        <a class="btn btn-outline-info mb-4" href="?page={{ num }}">{{ num }}</a>
+        {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+        <a class="btn btn-outline-info mb-4" href="?page={{ page_obj.next_page_number }}">Next</a>
+        <a class="btn btn-outline-info mb-4" href="?page={{ page_obj.paginator.num_pages }}">Last</a>
+        {% endif %}
+        {% endif %}
+        {% endif %}
+    </div>
+</div>
+{% endif %}
 {% endblock content %}

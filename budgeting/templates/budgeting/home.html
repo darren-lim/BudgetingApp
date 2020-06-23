@@ -13,34 +13,6 @@
   <h3>Current Balance:</h3>
   <h3 class="display-2" style="color:black">${{total.total}}</h3>
   <hr class="my-2">
-  <!--
-    <div class="row" style="padding-top: 1%">
-      {% if total.monthly_gain == 0 %}
-        <div class="col text-center">
-          <h4>This Month Gained:</h4>
-          <h1 style="color:limegreen">+ $0.00</h1>
-        </div>
-      {% else %}
-          <div class="col text-center">
-            <h4>This Month Gained:</h4>
-            <h1 style="color:limegreen">+ ${{total.monthly_gain}}</h1>
-          </div>
-      {% endif %}
-      {% if total.monthly_spent == None %}
-          <div class="col text-center">
-            <h4>This Month Spent: </h4>
-            <h1 style="color:red">- $0.00</h1>
-          </div>
-      {% else %}
-          <div class="col text-center">
-            <h4>This Month Spent: </h4>
-            <h1 style="color:red">- ${{total.monthly_spent}}</h1>
-          </div>
-      {% endif %}
-    </div>
-    -->
-  <!-- <a href="{% url 'total-create'%}">Amount gained this month: {{total.monthly_gain}}</a></p> -->
-  <!-- <a href="{% url 'total-create'%}">Amount spent this month: {{total.monthly_spent}}</a> -->
   {% endif %}
 
 </div>
@@ -109,7 +81,7 @@
             <a class="mr-2" href="{% url 'transaction-detail' transaction.id %}">{{transaction.source}}</a>
           </h2>
           <h2 class="mr-4">
-              {{transaction.category}}
+            {{transaction.category}}
           </h2>
 
           {% if transaction.t_type  == 'Expense' %}
@@ -200,7 +172,7 @@
       aspectRatio: 2.5,
         cutoutPercentage: 70,
           responsive: true,
-            title: "Expenses",
+            title: "Expenses This Month",
               amount: "${{total.monthly_spent}}",
                 legendCallback: function(chart) {
                   let text = [];
@@ -242,7 +214,7 @@
       aspectRatio: 2.5,
         cutoutPercentage: 70,
           responsive: true,
-            title: "Income",
+            title: "Income This Month",
               amount: "${{total.monthly_gain}}",
                 legendCallback: function(chart) {
                   let text = [];
