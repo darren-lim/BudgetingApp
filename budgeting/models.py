@@ -74,7 +74,7 @@ class Total(models.Model):
     total_amount_gained = models.IntegerField(default=0)
     total_amount_spent = models.IntegerField(default=0)
 
-    author = models.OneToOneField(User, on_delete=models.CASCADE)
+    author = models.OneToOneField(User, on_delete=models.CASCADE, unique=True)
 
     def __str__(self):
         return str(self.author)

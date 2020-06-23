@@ -15,75 +15,101 @@
   <script src="../../static/utils/chartjs-plugin-doughnutlabel.min.js"></script>
 
   <!-- Bootstrap CSS -->
+  <link href="https://fonts.googleapis.com/css2?family=Lato&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
     integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous" />
 
-  <link rel="stylesheet" href="{% static 'blog/main.css'%}">
+  <link rel="stylesheet"  href="{% static 'budgetcss/main.css'%}">
 
   <script src="../../static/utils/color_generator.js"></script>
 
-  {% if title %}
-  <title>Treat Yo Self- {{title}}</title>
-  {% else %}
-  <title>Treat Yo Self</title>
-  {% endif %}
+    {% if title %}
+    <title>Treat Yo Self- {{title}}</title>
+    {% else %}
+    <title>Treat Yo Self</title>
+    {% endif %}
 </head>
-<!-- end of head -->
-
-<body>
-  <!-- added a navigation bar -->
-  <header class="site-header">
-    <nav class="navbar navbar-expand-md navbar-dark bg-steel fixed-top">
-      <div class="container">
-        <a class="navbar-brand mr-4" href="/">Treat Yo Self</a>
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarToggle"
-          aria-controls="navbarToggle" aria-expanded="false" aria-label="Toggle navigation">
-          <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarToggle">
-          <div class="navbar-nav mr-auto">
-            <!--we take the name of the urls in the urls.py module-->
-            <a class="nav-item nav-link" href="{% url 'budgeting-home'%}">Home</a>
-            {% if user.is_authenticated %}
-            <a class="nav-item nav-link" href="{% url 'all-transactions'%}">All-Transactions</a>
-            <a class="nav-item nav-link" href="{% url 'category-details'%}">Categories</a>
-            {% endif %}
-          </div>
-          <!-- Navbar Right Side -->
-          <div class="navbar-nav">
-            {% if user.is_authenticated %}
-            <a class="nav-item nav-link" href="{% url 'category-create' %}">Create Category</a>
-            <a class="nav-item nav-link" href="{% url 'profile' %}">Profile</a>
-            <a class="nav-item nav-link" href="{% url 'logout' %}">Logout</a>
-            {% else %}
-            <a class="nav-item nav-link" href="{% url 'login' %}">Login</a>
-            <a class="nav-item nav-link" href="{% url 'register' %}">Register</a>
-            {% endif %}
-          </div>
-        </div>
-      </div>
-    </nav>
-  </header>
-
-  <!-- this block is called content (name we chose)-->
-  <!-- div gives us some nice spacing/margin padding-->
-  <main role="main" class="container">
-    <!-- Main Transaction list -->
-    {% block content %}{% endblock content%}
-  </main>
-
-  <!-- Optional JavaScript -->
-  <!-- jQuery first, then Popper.js, then Bootstrap JS -->
-  <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
-    integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
-    crossorigin="anonymous"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
-    integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
-    crossorigin="anonymous"></script>
-  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
-    integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
-    crossorigin="anonymous"></script>
-
-</body>
-
+  <!-- end of head -->
+  <body>
+    {% if user.is_authenticated %}
+      <!-- added a navigation bar -->
+        <header class="site-header">
+          <nav class="navbar navbar-expand-md navbar-dark bg-steel fixed-top">
+            <div class="container-fluid">
+              <a class="navbar-brand mr-4" href="/">Treat Yo Self</a>
+              <button
+                class="navbar-toggler"
+                type="button"
+                data-toggle="collapse"
+                data-target="#navbarToggle"
+                aria-controls="navbarToggle"
+                aria-expanded="false"
+                aria-label="Toggle navigation"
+              >
+                <span class="navbar-toggler-icon"></span>
+              </button>
+              <div class="collapse navbar-collapse" id="navbarToggle">
+                <div class="navbar-nav mr-auto">
+                    <!--we take the name of the urls in the urls.py module-->
+                  <a class="nav-item nav-link" href="{% url 'budgeting-home'%}">Home</a>
+                  <!--<a class="nav-item nav-link" href="{% url 'budgeting-about'%}">About</a>-->
+                    {% if user.is_authenticated %}
+                        <a class="nav-item nav-link" href="{% url 'all-transactions'%}">All-Transactions</a>
+                        <a class="nav-item nav-link" href="{% url 'category-details'%}">Categories</a>
+                    {% endif %}
+                </div>
+                <!-- Navbar Right Side -->
+                <div class="navbar-nav">
+                    <a class="nav-item nav-link" href="{% url 'category-create' %}">Create Category</a>
+                    <a class="nav-item nav-link" href="{% url 'profile' %}">Profile</a>
+                    <a class="nav-item nav-link" href="{% url 'logout' %}">Logout</a>
+                </div>
+              </div>
+            </div>
+        </nav>
+      </header>
+    {% else %}
+        <header>
+            <nav class="landing-nav">
+                <a href="/" class="site-name">Treat Yo' Self</a>
+                <!--
+                <div class="landing-links">
+                    <a href="#" class="landing-link">About</a>
+                    <a href="#" class="landing-link">How It Works</a>
+                    <a href="#" class="landing-link">FAQs</a>
+                    <a href="#" class="landing-link">Future</a>
+                </div>
+                -->
+                <div class="register-btns">
+                    <a href="{% url 'login' %}" class="log-in">Log In</a>
+                    <a href="{% url 'register' %}" class="sign-up">Sign Up</a>
+                </div>
+            </nav>
+        </header>
+        <section class="background-section"></section>
+    {% endif %}
+    <!-- this block is called content (name we chose)-->
+    <!-- div gives us some nice spacing/margin padding-->
+    <main role="main" class="container">
+        <!-- Main Transaction list -->
+        {% block content %}{% endblock content%}
+    </main>
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script
+      src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+      integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+      integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+      integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+      crossorigin="anonymous"
+    ></script>
+  </body>
 </html>

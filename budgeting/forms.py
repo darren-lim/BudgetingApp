@@ -13,7 +13,6 @@ class TransactionForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
-        _source_list = kwargs.pop('source', None)
         user = kwargs.pop('user', None)
         categories = kwargs.pop('choices', None)
         super(TransactionForm, self).__init__(*args, **kwargs)
@@ -21,8 +20,8 @@ class TransactionForm(forms.ModelForm):
         # the "name" parameter will allow you to use the same widget more than once in the same
         # form, not setting this parameter differently will cuse all inputs display the
         # same list.
-        self.fields['source'].widget = ListTextWidget(
-            data_list=_source_list, name='source')
+        #self.fields['source'].widget = ListTextWidget(
+        #    data_list=_source_list, name='source')
 
 
 class UpdateForm(TransactionForm):
@@ -34,6 +33,12 @@ class UpdateForm(TransactionForm):
             'date_posted': forms.DateInput(format='%m/%d/%Y', attrs={'placeholder': 'e.g. 02/15/2020'}),
             'source': forms.TextInput(attrs={'placeholder': 'e.g. Part-time job, Utilities, Gas'})
         }
+
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user', None)
+        categories = kwargs.pop('choices', None)
+        super(TransactionForm, self).__init__(*args, **kwargs)
+        self.fields['category'].queryset = categories
 
 
 class TotalForm(forms.ModelForm):
@@ -57,4 +62,4 @@ class CategoryUpdateForm(CategoryForm):
 
     class Meta:
         model = Categories
-        fields = ['monthly_goal']
+        fields = ['monthly_goal', 'is_expense']

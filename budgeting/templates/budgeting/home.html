@@ -1,49 +1,68 @@
 {% extends "budgeting/base.html" %}
 <!-- ^ Uses the base template (base.html)-->
+{% load static %}
 {% block content %}
 
 {% if user.is_authenticated %}
 <!-- PLEASE CHANGE THE BACKGROUND COLOR OMG SO BAD -->
-<div class="jumbotron container-fluid text-center" style="padding-top: 2%;padding-bottom: 2%;">
-
-  {% if total.total == None %}
-  <h1 class="display-3"><a href="{% url 'total-create'%}">Enter your current balance</a></h1>
-  {% else %}
-  <!-- <h1><a href="{% url 'total-create'%}"></a></h1> -->
-  <h3>Current Balance:</h3>
-  <h3 class="display-2" style="color:black">${{total.total}}</h3>
-  <hr class="my-2">
-  {% endif %}
-
-</div>
-{% if total.transaction_list|length == 0 or total.transaction_list == None %}
-{% if total.total != None %}
-<div class="jumbotron text-center" style="margin-left: 15%; margin-right: 15%; padding: 5%">
-  <h4 style="padding-bottom: 5%">
-    Start By Creating a Transaction!
-  </h4>
-  <ul class="list-group">
-    <li class="list-group-item list-group-item-light"><a
-        href="{% url 'transaction-create' parameter='Income' %}">Income</a></li>
-    <li class="list-group-item list-group-item-light"><a
-        href="{% url 'transaction-create' parameter='Expense' %}">Expense</a></li>
-  </ul>
-</div>
-{% endif %}
+    {% if total.total == None %}
+      <div class="jumbotron container-fluid text-left">
+      <h1 class="display-2">
+        Welcome To Treat Yo Self!
+      </h1>
+      <br>
+      <h3>
+          Here's how to get started:
+      </h3>
+      <ul>
+          <li>
+              Input your current balance.
+          </li>
+          <li>
+              Create new categories to organize your transactions.
+          </li>
+          <li>
+              Create transactions to get going!
+          </li>
+      </ul>
+      </div>
+      <h3 class="enter-balance">
+          <a class="enter-balance-link" href="{% url 'total-create'%}">Enter your current balance</a>
+      </h3>
+    {% else %}
+    <div class="jumbotron container text-center jumbo">
+      <h3>Current Balance:</h3>
+      <h3 class="display-2" style="color:black">${{total.total}}</h3>
+    </div>
+    {% endif %}
+    {% if total.transaction_list|length == 0 or total.transaction_list == None %}
+        {% if total.total != None %}
+            <div class="jumbotron text-center" style="margin:10%">
+              <h4 style="padding-bottom: 2%">
+                Create Some Categories
+              </h4>
+              <ul class="list-group">
+                <li class="list-group-item list-group-item-light">
+                    <a href="{% url 'category-create' %}">Create Category</a>
+                </li>
+              </ul>
+                <br/>
+              <h4 style="padding-bottom: 2%">
+                Then Create Transactions!
+              </h4>
+              <ul class="list-group">
+                <li class="list-group-item list-group-item-light"><a
+                    href="{% url 'transaction-create' parameter='Income' %}">Income</a></li>
+                <li class="list-group-item list-group-item-light"><a
+                    href="{% url 'transaction-create' parameter='Expense' %}">Expense</a></li>
+              </ul>
+            </div>
+        {% endif %}
+>>>>>>> deployment
 {% else %}
 
 <div class="text-center">
-  <!--
-  {% if total.expense_data|length == 0 or total.expense_data == None %}
-  <div style="margin-left: 15%; margin-right: 15%; padding: 3%">
-    <h4 class="card" style="background-color: #d3ffdf; padding: 3%">
-      You have not spent any money (:
-    </h4>
-  </div>
-  {% else %}
-  {% endif %}
-  -->
-  <div class="container">
+  <div class="container" style="margin-top: 2rem;margin-bottom: 2rem;">
     <table style="margin-left:auto;margin-right:auto;">
       <tr>
         <td>
@@ -113,20 +132,26 @@
 </div>
 {% endif %}
 {% else %}
-<div class="row">
-  <div class="col-md-8">
-    <article class="media content-section">
-      <div class="media-body">
-        <div class="article-metadata">
-          <h2>
-            Welcome to Treat Yo Self, a Budgeting Website for your Poor Ass Needs
-          </h2>
-        </div>
-        <p>Please Register or Log In to start.</p>
-      </div>
-    </article>
-  </div>
-</div>
+    <section class="main-section">
+        <h1 class="main-header">Professional budgeting,
+            <br />
+            made <span style="color:#02C39A">simple.</span>
+        </h1>
+        <p class="landing-desc">A simple, but powerful budgeting tool for the casual spender</p>
+        <a href="{% url 'register' %}" class="get-started-link">Get Started Free</a>
+    </section>
+    <section class="demo-section">
+      <h4 class="demo-text" style="padding-right: 5%">
+          Have an easy to read layout of your current budget, monthly expenses, and recent transactions.
+      </h4>
+      <img class="front-img" src="{% static 'images/treatyoself1.png' %}" alt="HomeImg"/>
+    </section>
+    <section class="demo-section">
+      <img class="front-img" src="{% static 'images/treatyoself2.png' %}" alt="FormImg"/>
+        <h4 class="demo-text" style="padding-left: 5%">
+          Fully customize your transactions to the name and down to any notes about the transaction.
+      </h4>
+    </section>
 {% endif %}
 <script>
     Chart.defaults.global.legend.labels.usePointStyle = true;
@@ -172,7 +197,7 @@
       aspectRatio: 2.5,
         cutoutPercentage: 70,
           responsive: true,
-            title: "Expenses This Month",
+            title: "Expenses this Month",
               amount: "${{total.monthly_spent}}",
                 legendCallback: function(chart) {
                   let text = [];
@@ -214,7 +239,7 @@
       aspectRatio: 2.5,
         cutoutPercentage: 70,
           responsive: true,
-            title: "Income This Month",
+            title: "Income this Month",
               amount: "${{total.monthly_gain}}",
                 legendCallback: function(chart) {
                   let text = [];
