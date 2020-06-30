@@ -34,7 +34,8 @@ urlpatterns = [
     
     # path('', include('budgeting.urls')),
     path('',include('frontend.urls')),
-    path('api/',include('users.urls'))
+    path('api/',include('users.urls')),
+    path('apiapi/', include('budgeting.urls'))
 ]
 
 if settings.DEBUG:

@@ -4,7 +4,14 @@ from .views import (TransListView, TransDetailView,
                     TransCreateView, TransUpdateView,
                     TransDeleteView, HomeView, TotalCreateView)
 
+from rest_framework import routers
+from .api import TransactionViewSet
 
+urlpatterns = [
+    path('all_transactions/', TransactionViewSet.as_view())
+]
+
+'''
 urlpatterns = [
     path('', HomeView.as_view(), name='budgeting-home'),
     path('all_transactions/', TransListView.as_view(), name='all-transactions'),
@@ -20,3 +27,4 @@ urlpatterns = [
          name='transaction-delete'),
     path('about/', views.about, name='budgeting-about')
 ]
+'''

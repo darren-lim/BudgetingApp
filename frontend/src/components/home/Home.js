@@ -5,16 +5,16 @@ import axios from "axios"
 
 class Home extends Component {
     constructor(props) {
-        super(props)
+        super(props);
         this.state = {
         }
         
     }
 
     componentDidMount = () => {
-        console.log("Home componentDidMount")
+        console.log("Home componentDidMount");
         this.props.checkLogin()
-    }
+    };
 
     render() {
          return(
