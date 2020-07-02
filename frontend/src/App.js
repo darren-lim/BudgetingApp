@@ -3,14 +3,17 @@ import { render } from "react-dom";
 
 // Using HashRouter so reloading don't look into backend
 import {HashRouter as Router, Route, Switch, Redirect} from "react-router-dom";
+import Cookies from "js-cookie"
+import axios from "axios";
 
 import './App.css';
 import Navbar from "./components/navbar/Navbar";
 import Home from "./components/home/Home";
 import Login from "./components/login/Login"
 import Register from "./components/register/Register"
-import Cookies from "js-cookie"
-import axios from "axios";
+import Total from "./components/total/Total"
+
+
 
 
 // Notes: Need to figure out how to login in before rendering components.
@@ -99,6 +102,10 @@ class App extends Component {
             <Login {...props}
                     setLogin = {this.setLogin}
               />
+          )} />
+          <Route path = "/total" render = {props =>(
+            <Total {...props}
+             />
           )} />
         </Switch>
       </Router>

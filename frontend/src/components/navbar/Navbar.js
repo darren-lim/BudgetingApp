@@ -25,7 +25,7 @@ class Navbar extends Component {
         return(
             <nav className = "navbar navbar-dark bg-dark navbar-expand-sm" >
                 {console.log("Navbar Render")}
-                <Link to="/" className = "navbar-brand">Home</Link>
+                <Link to = "/" className = "navbar-brand">Home</Link>
                 <div className = "w-100">
                     <ul className = "navbar-nav ml-auto">
                         {this.props.isLoggedIn ?
@@ -39,6 +39,11 @@ class Navbar extends Component {
                             </React.Fragment>
                             :
                             <React.Fragment>
+                                <li className = "navbar-item">
+                                    <Link to = "/total" className = "nav-link" >
+                                        Total
+                                    </Link>
+                                </li>
                                 <li className = "navbar-item">
                                     <Link to = "/register" className = "nav-link" >
                                         Register

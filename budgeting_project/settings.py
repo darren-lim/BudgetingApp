@@ -46,7 +46,6 @@ INSTALLED_APPS = [
     #Django use these apps
     'budgeting.apps.BudgetingConfig',
     'users.apps.UsersConfig',
-    'leads.apps.LeadsConfig',
     'frontend', #enables frontend app
 
     #Necessary for Django rest Framework

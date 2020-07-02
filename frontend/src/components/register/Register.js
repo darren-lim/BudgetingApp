@@ -96,9 +96,9 @@ class Register extends Component{
                     <Form.Group controlId="formBasicPassword2">
                         <Form.Label>Confirm Password</Form.Label>
                         <Form.Control 
-                            type="password2"
+                            type="password"
                             name = "password2" 
-                            placeholder="Password"
+                            placeholder="Confirm Password"
                             onChange = {(e) => this.handleChange(e)} />
                     </Form.Group>
 
