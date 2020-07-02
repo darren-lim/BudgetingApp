@@ -1,3 +1,5 @@
+'''
+
 from django.shortcuts import redirect
 from django.shortcuts import render
 from django.contrib import messages
@@ -34,3 +36,5 @@ def profile(request):
         'u_form': u_form,
     }
     return render(request, 'users/profile.html', context)
+
+'''
