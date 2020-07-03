@@ -1,15 +1,10 @@
-node_modules
+node_modules/
 
 ### Django ###
-*.log
-*.pot
 *.pyc
 __pycache__/
 *.py[cod]
 *$py.class
-
-db.sqlite3
-db.sqlite3-journal
 media
 
 

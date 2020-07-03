@@ -66,7 +66,7 @@ class Transaction(models.Model):
     def add_type(self, typeName):
         self.t_type = typeName
 
-
+'''
 class Total(models.Model):
     initial_amount = models.DecimalField("Initial Balance",
                                          max_digits=10, decimal_places=2, null=True)
@@ -82,7 +82,7 @@ class Total(models.Model):
     def get_absolute_url(self):
         # reverse will return the full path as a string so we can redirect to our budgeting-home template page
         return reverse('budgeting-home')
-
+'''
 
 class History(models.Model):
     year = models.IntegerField(null=True)

@@ -7,14 +7,3 @@ class TransactionSerializer(serializers.ModelSerializer):
         model = Transaction
         fields = '__all__'
 
-
-class TotalSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Total
-        fields = '__all__'
-
-
-class HistorySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Transaction
-        fields = '__all__'

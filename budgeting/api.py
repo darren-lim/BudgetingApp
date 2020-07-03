@@ -14,10 +14,10 @@ class TransactionViewSet(generics.ListAPIView):
     serializer_class = TransactionSerializer
 
     def get_queryset(self):
-        user = self.request.user
+        # user = self.request.user
         # queryset = Transaction.objects.filter(author=user)
-        queryset = self.queryset
-        return queryset.order_by('date_posted')
+        # queryset = self.queryset
+        return self.queryset.order_by('date_posted')
 
 
 class TotalViewSet(viewsets.ModelViewSet):
