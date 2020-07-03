@@ -51,3 +51,19 @@ class Transaction(models.Model):
 
     def add_type(self, typeName):
         self.t_type = typeName
+        
+        
+
+class History(models.Model):
+    year = models.IntegerField(null=True)
+    month = models.IntegerField(null=True)
+    monthly_amount_gained = models.IntegerField(default=0)
+    monthly_amount_spent = models.IntegerField(default=0)
+    author = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
+
+    def __str__(self):
+        return "%s/%s" % (self.month, self.year)
+
+    def get_absolute_url(self):
+        # reverse will return the full path as a string so we can redirect to our budgeting-home template page
+        return reverse('budgeting-home')
