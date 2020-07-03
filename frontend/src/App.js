@@ -12,6 +12,7 @@ import Home from "./components/home/Home";
 import Login from "./components/login/Login"
 import Register from "./components/register/Register"
 import Total from "./components/total/Total"
+import All_Transactions from "./components/all_transactions/All_Transactions"
 
 
 
@@ -89,6 +90,12 @@ class App extends Component {
         <Switch>
           <Route exact path = "/" render = {props => (
               <Home {...props}
+                username = {this.state.username}
+                isLoggedIn = {this.state.isLoggedIn}
+                checkLogin = {this.checkLogin}/>
+            )}/>
+           <Route exact path = "/apiapi/all_transactions" render = {props => (
+              <All_Transactions {...props}
                 username = {this.state.username}
                 isLoggedIn = {this.state.isLoggedIn}
                 checkLogin = {this.checkLogin}/>

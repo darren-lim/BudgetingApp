@@ -1,33 +1,20 @@
-from rest_framework import viewsets, permissions, generics
+from budgeting.models import Transaction
+from rest_framework import viewsets, permissions
+from rest_framework import generics
 from rest_framework.response import Response
+from .serializers import TransactionSerializer
 
-from .models import Total
-from .serializers import CreateTotalSerializer,TotalSerializer
+# transaction viewset
 
-class CreateTotalAPI(generics.GenericAPIView):
-    serializer_class = CreateTotalSerializer
-
+class TransactionViewSet(generics.ListAPIView):
+    queryset = Transaction.objects.all()
     permission_classes = [
-        permissions.IsAuthenticated,
+        permissions.AllowAny
     ]
-    
-    def post(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data = request.data)
-        serializer.is_valid(raise_exception = True)
-        total = serializer.save()
-        return Response({
-            "total": TotalSerializer(total, context = self.get_serializer_context()).data
-        })
+    serializer_class = TransactionSerializer
 
-    
-
-
-class TotalAPI(generics.GenericAPIView):
-    serializer_class = TotalSerializer
-
-    permission_classes = [
-        permissions.IsAuthenticated
-    ]
-
-    def get_object(self):
-        return self.request.total
+    def get_queryset(self):
+        user = self.request.user
+        # queryset = Transaction.objects.filter(author=user)
+        queryset = self.queryset
+        return queryset.order_by('date_posted')

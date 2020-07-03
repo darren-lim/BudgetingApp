@@ -26,6 +26,8 @@ class Navbar extends Component {
             <nav className = "navbar navbar-dark bg-dark navbar-expand-sm" >
                 {console.log("Navbar Render")}
                 <Link to = "/" className = "navbar-brand">Home</Link>
+                <Link to = "/total" className = "navbar-brand"> Total </Link>
+                <Link to="/apiapi/all_transactions" className = "navbar-brand">All Transactions</Link>
                 <div className = "w-100">
                     <ul className = "navbar-nav ml-auto">
                         {this.props.isLoggedIn ?
