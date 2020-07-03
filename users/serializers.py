@@ -34,3 +34,25 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model   = User
         fields  = ('id','username', 'email')
+
+
+class CreateTotalSerializer(serializers.ModelSerializer):
+    # user = serializers.SerializerMethodField('get_user')
+
+    class Meta:
+        model = Profile
+        fields = ("initial_amount","total_amount","total_amount_gained","total_amount_spent")
+
+    # def get_user(self, total):
+    #     user = total.user
+    #     return user
+    
+    def create(self, validated_data):
+        return Profile.objects.create(**validated_data)
+
+
+class TotalSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Profile
+        fields = "__all__"
+        
