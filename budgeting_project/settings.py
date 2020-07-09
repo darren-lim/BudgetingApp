@@ -82,11 +82,8 @@ WSGI_APPLICATION = 'budgeting_project.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE':   'djongo',
-        'NAME':     'TreatYoSelf',
-        'CLIENT': {
-            'host': "mongodb+srv://burger:burgercheese@treatyoself-8nrgu.mongodb.net/test?retryWrites=true&w=majority"
-        },
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
 
